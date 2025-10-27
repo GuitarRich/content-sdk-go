@@ -1,13 +1,14 @@
 package layoutservice
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
+	"time"
 
 	"github.com/content-sdk-go/debug"
+	"github.com/content-sdk-go/graphql"
 )
 
 // GraphQLLayoutQueryName is the name of the GraphQL query for layout data
@@ -18,13 +19,12 @@ type FetchOptions struct {
 	Retries    *int
 	HTTPClient *http.Client
 	Headers    map[string]string
-	Timeout    *int
+	Timeout    *time.Duration
 }
 
-// GraphQLClient is an interface for making GraphQL requests
-type GraphQLClient interface {
-	Request(query string, variables map[string]interface{}, options *FetchOptions) (map[string]interface{}, error)
-}
+// Note: GraphQLClient is now defined in graphql package
+// Keeping this as alias for backward compatibility
+type GraphQLClient = graphql.Client
 
 // GraphQLServiceConfig contains configuration for GraphQL service
 type GraphQLServiceConfig struct {
@@ -46,27 +46,17 @@ type LayoutService struct {
 	graphQLClient GraphQLClient
 }
 
-// defaultGraphQLClient is a simple implementation of GraphQLClient
-type defaultGraphQLClient struct {
-	endpoint   string
-	apiKey     string
-	httpClient *http.Client
-}
+// Note: defaultGraphQLClient removed - now using graphql.Client
 
 // NewLayoutService creates a new LayoutService instance
 func NewLayoutService(serviceConfig LayoutServiceConfig) *LayoutService {
-	// Use provided HTTP client or default
-	httpClient := serviceConfig.HTTPClient
-	if httpClient == nil {
-		httpClient = &http.Client{}
-	}
-
-	// Create default GraphQL client
-	graphQLClient := &defaultGraphQLClient{
-		endpoint:   serviceConfig.Endpoint,
-		apiKey:     serviceConfig.APIKey,
-		httpClient: httpClient,
-	}
+	// Create GraphQL client using factory
+	graphQLClient := graphql.NewClient(
+		serviceConfig.Endpoint,
+		serviceConfig.APIKey,
+		serviceConfig.HTTPClient,
+		nil, // Use default config
+	)
 
 	return &LayoutService{
 		serviceConfig: serviceConfig,
@@ -103,7 +93,15 @@ func (ls *LayoutService) FetchLayoutData(
 	}
 	debug.Layout("fetching layout data for %s %s %s", itemPath, localeStr, site)
 
-	data, err := ls.graphQLClient.Request(query, map[string]interface{}{}, fetchOptions)
+	// Create context with timeout if specified in fetchOptions
+	ctx := context.Background()
+	if fetchOptions != nil && fetchOptions.Timeout != nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, *fetchOptions.Timeout)
+		defer cancel()
+	}
+
+	data, err := ls.graphQLClient.Request(ctx, query, map[string]interface{}{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch layout data: %w", err)
 	}
@@ -196,85 +194,4 @@ func (ls *LayoutService) getLayoutQuery(itemPath string, site string, language *
         }
       }
     }`, GraphQLLayoutQueryName, layoutQuery)
-}
-
-// Request implements GraphQLClient interface for defaultGraphQLClient
-func (c *defaultGraphQLClient) Request(
-	query string,
-	variables map[string]interface{},
-	options *FetchOptions,
-) (map[string]interface{}, error) {
-	// Prepare the GraphQL request body
-	requestBody := map[string]interface{}{
-		"query":     query,
-		"variables": variables,
-	}
-
-	jsonData, err := json.Marshal(requestBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal GraphQL request: %w", err)
-	}
-
-	// Create HTTP request
-	req, err := http.NewRequest("POST", c.endpoint, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
-	}
-
-	// Set headers
-	req.Header.Set("Content-Type", "application/json")
-	if c.apiKey != "" {
-		req.Header.Set("sc_apikey", c.apiKey)
-	}
-
-	// Apply custom headers from options
-	if options != nil && options.Headers != nil {
-		for key, value := range options.Headers {
-			req.Header.Set(key, value)
-		}
-	}
-
-	// Use custom HTTP client from options if provided
-	httpClient := c.httpClient
-	if options != nil && options.HTTPClient != nil {
-		httpClient = options.HTTPClient
-	}
-
-	// Execute request
-	debug.Http("GraphQL request to %s", c.endpoint)
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute GraphQL request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	// Read response
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	// Check for HTTP errors
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("GraphQL request failed with status %d: %s", resp.StatusCode, string(body))
-	}
-
-	// Parse response
-	var result struct {
-		Data   map[string]interface{} `json:"data"`
-		Errors []struct {
-			Message string `json:"message"`
-		} `json:"errors,omitempty"`
-	}
-
-	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal GraphQL response: %w", err)
-	}
-
-	// Check for GraphQL errors
-	if len(result.Errors) > 0 {
-		return nil, fmt.Errorf("GraphQL errors: %v", result.Errors)
-	}
-
-	return result.Data, nil
 }
