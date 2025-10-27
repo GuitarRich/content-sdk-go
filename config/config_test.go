@@ -274,4 +274,3 @@ func TestConfigGetAPIKey_Local(t *testing.T) {
 		t.Errorf("expected API key 'local-key', got '%s'", apiKey)
 	}
 }
-

@@ -11,6 +11,7 @@ The Go SDK maintains similar concepts and patterns to the TypeScript SDK, adapte
 ### 1. Type System
 
 **TypeScript:**
+
 ```typescript
 interface Page {
   layoutData: LayoutServiceData;
@@ -19,6 +20,7 @@ interface Page {
 ```
 
 **Go:**
+
 ```go
 type Page struct {
     LayoutData interface{} `json:"layoutData"`
@@ -29,15 +31,17 @@ type Page struct {
 ### 2. Error Handling
 
 **TypeScript:**
+
 ```typescript
 try {
-  const page = await client.getPage('/products');
+  const page = await client.getPage("/products");
 } catch (error) {
   console.error(error);
 }
 ```
 
 **Go:**
+
 ```go
 page, err := client.GetPage("/products", models.PageOptions{})
 if err != nil {
@@ -48,14 +52,16 @@ if err != nil {
 ### 3. Configuration
 
 **TypeScript:**
+
 ```typescript
 export default defineConfig({
   sitecoreEdgeContextId: process.env.SITECORE_EDGE_CONTEXT_ID,
-  defaultSiteName: 'mysite',
+  defaultSiteName: "mysite",
 });
 ```
 
 **Go:**
+
 ```go
 cfg := config.NewConfigBuilder().
     WithEdgeAPI(contextID, "", "").
@@ -66,6 +72,7 @@ cfg := config.NewConfigBuilder().
 ### 4. Middleware
 
 **TypeScript (Next.js):**
+
 ```typescript
 export function middleware(request: NextRequest) {
   const multisite = new MultisiteMiddleware();
@@ -74,6 +81,7 @@ export function middleware(request: NextRequest) {
 ```
 
 **Go:**
+
 ```go
 mw := middleware.NewMultisiteMiddleware(config)
 e.Use(middleware.AdaptMiddlewareToEcho(mw))
@@ -83,40 +91,40 @@ e.Use(middleware.AdaptMiddlewareToEcho(mw))
 
 ### Client Methods
 
-| TypeScript | Go | Notes |
-|------------|-----|-------|
-| `client.getPage()` | `client.GetPage()` | Pascal case |
-| `client.getPreview()` | `client.GetPreview()` | Pascal case |
-| `client.getStaticPaths()` | `client.GetStaticPaths()` | Pascal case |
+| TypeScript                     | Go                             | Notes       |
+| ------------------------------ | ------------------------------ | ----------- |
+| `client.getPage()`             | `client.GetPage()`             | Pascal case |
+| `client.getPreview()`          | `client.GetPreview()`          | Pascal case |
+| `client.getStaticPaths()`      | `client.GetStaticPaths()`      | Pascal case |
 | `client.getSiteNameFromPath()` | `client.GetSiteNameFromPath()` | Pascal case |
 
 ### Services
 
-| TypeScript Package | Go Package | Location |
-|-------------------|-----------|----------|
-| `@sitecore-content-sdk/core/dictionary` | `i18n` | `i18n/dictionary.go` |
-| `@sitecore-content-sdk/core/site` | `site` | `site/siteinfo.go` |
-| `@sitecore-content-sdk/core/redirects` | `site` | `site/redirects.go` |
-| `@sitecore-content-sdk/core/sitemap` | `seo` | `seo/sitemap.go` |
-| `@sitecore-content-sdk/core/robots` | `seo` | `seo/robots.go` |
-| `@sitecore-content-sdk/core/media` | `media` | `media/media.go` |
+| TypeScript Package                      | Go Package | Location             |
+| --------------------------------------- | ---------- | -------------------- |
+| `@sitecore-content-sdk/core/dictionary` | `i18n`     | `i18n/dictionary.go` |
+| `@sitecore-content-sdk/core/site`       | `site`     | `site/siteinfo.go`   |
+| `@sitecore-content-sdk/core/redirects`  | `site`     | `site/redirects.go`  |
+| `@sitecore-content-sdk/core/sitemap`    | `seo`      | `seo/sitemap.go`     |
+| `@sitecore-content-sdk/core/robots`     | `seo`      | `seo/robots.go`      |
+| `@sitecore-content-sdk/core/media`      | `media`    | `media/media.go`     |
 
 ### Middleware
 
-| TypeScript | Go | Config |
-|-----------|-----|--------|
-| `MultisiteMiddleware` | `MultisiteMiddleware` | `MultisiteConfig` |
-| `LocaleMiddleware` | `LocaleMiddleware` | `LocaleConfig` |
-| `RedirectsMiddleware` | `RedirectsMiddleware` | `RedirectsConfig` |
+| TypeScript              | Go                      | Config              |
+| ----------------------- | ----------------------- | ------------------- |
+| `MultisiteMiddleware`   | `MultisiteMiddleware`   | `MultisiteConfig`   |
+| `LocaleMiddleware`      | `LocaleMiddleware`      | `LocaleConfig`      |
+| `RedirectsMiddleware`   | `RedirectsMiddleware`   | `RedirectsConfig`   |
 | `PersonalizeMiddleware` | `PersonalizeMiddleware` | `PersonalizeConfig` |
 
 ### Handlers
 
-| TypeScript Route | Go Handler | Function |
-|-----------------|------------|----------|
-| `app/[[...path]]/page.tsx` | `CatchAllHandler` | Dynamic pages |
-| `app/robots.txt/route.ts` | `RobotsHandler` | Robots.txt |
-| `app/sitemap.xml/route.ts` | `SitemapHandler` | Sitemap |
+| TypeScript Route                  | Go Handler             | Function       |
+| --------------------------------- | ---------------------- | -------------- |
+| `app/[[...path]]/page.tsx`        | `CatchAllHandler`      | Dynamic pages  |
+| `app/robots.txt/route.ts`         | `RobotsHandler`        | Robots.txt     |
+| `app/sitemap.xml/route.ts`        | `SitemapHandler`       | Sitemap        |
 | `app/api/editing/config/route.ts` | `EditingConfigHandler` | Editing config |
 | `app/api/editing/render/route.ts` | `EditingRenderHandler` | Editing render |
 
@@ -125,11 +133,13 @@ e.Use(middleware.AdaptMiddlewareToEcho(mw))
 ### 1. Setup
 
 **Install Go SDK:**
+
 ```bash
 go get github.com/content-sdk-go
 ```
 
 **Create configuration:**
+
 ```go
 // config/config.go
 cfg := config.LoadConfig()
@@ -138,8 +148,9 @@ cfg := config.LoadConfig()
 ### 2. Create Client
 
 **TypeScript:**
+
 ```typescript
-import { createSitecoreNextJSClient } from '@sitecore-content-sdk/nextjs';
+import { createSitecoreNextJSClient } from "@sitecore-content-sdk/nextjs";
 
 const client = createSitecoreNextJSClient({
   sitecoreEdgeContextId: process.env.SITECORE_EDGE_CONTEXT_ID,
@@ -147,6 +158,7 @@ const client = createSitecoreNextJSClient({
 ```
 
 **Go:**
+
 ```go
 import "github.com/content-sdk-go/client"
 
@@ -160,14 +172,16 @@ client := client.NewSitecoreClient(client.ClientConfig{
 ### 3. Fetch Page Data
 
 **TypeScript:**
+
 ```typescript
-const page = await client.getPage('/products', {
-  site: 'mysite',
-  locale: 'en',
+const page = await client.getPage("/products", {
+  site: "mysite",
+  locale: "en",
 });
 ```
 
 **Go:**
+
 ```go
 locale := "en"
 page, err := client.GetPage("/products", models.PageOptions{
@@ -182,6 +196,7 @@ if err != nil {
 ### 4. Middleware Setup
 
 **TypeScript (Next.js middleware.ts):**
+
 ```typescript
 export function middleware(request: NextRequest) {
   return multisiteMiddleware(request);
@@ -189,6 +204,7 @@ export function middleware(request: NextRequest) {
 ```
 
 **Go (Echo):**
+
 ```go
 e.Use(middleware.AdaptMiddlewareToEcho(
     middleware.NewMultisiteMiddleware(config),
@@ -198,14 +214,16 @@ e.Use(middleware.AdaptMiddlewareToEcho(
 ### 5. Route Handlers
 
 **TypeScript (app/[[...path]]/page.tsx):**
+
 ```typescript
 export default async function Page({ params }) {
-  const page = await client.getPage(params.path.join('/'));
+  const page = await client.getPage(params.path.join("/"));
   return <PageRenderer page={page} />;
 }
 ```
 
 **Go:**
+
 ```go
 catchAll := handlers.NewCatchAllHandler(sitecoreClient)
 e.GET("/*", func(c echo.Context) error {
@@ -219,18 +237,20 @@ e.GET("/*", func(c echo.Context) error {
 ### 1. Multisite
 
 **TypeScript:**
+
 ```typescript
 const config = defineConfig({
   multisite: {
     sites: [
-      { name: 'site1', hostName: 'www.site1.com' },
-      { name: 'site2', hostName: 'www.site2.com' },
+      { name: "site1", hostName: "www.site1.com" },
+      { name: "site2", hostName: "www.site2.com" },
     ],
   },
 });
 ```
 
 **Go:**
+
 ```go
 sites := []models.SiteInfo{
     {Name: "site1", HostName: "www.site1.com"},
@@ -245,16 +265,18 @@ cfg, _ := config.NewConfigBuilder().
 ### 2. Personalization
 
 **TypeScript:**
+
 ```typescript
 const config = defineConfig({
   personalize: {
     enabled: true,
-    scope: 'your-scope',
+    scope: "your-scope",
   },
 });
 ```
 
 **Go:**
+
 ```go
 cfg, _ := config.NewConfigBuilder().
     WithPersonalization(true, "your-scope", "").
@@ -264,6 +286,7 @@ cfg, _ := config.NewConfigBuilder().
 ### 3. Editing/Preview
 
 **TypeScript:**
+
 ```typescript
 const config = defineConfig({
   editing: {
@@ -274,6 +297,7 @@ const config = defineConfig({
 ```
 
 **Go:**
+
 ```go
 cfg, _ := config.NewConfigBuilder().
     WithEditing(true, secret, internalHostURL).
@@ -283,6 +307,7 @@ cfg, _ := config.NewConfigBuilder().
 ## Async/Await vs Error Handling
 
 ### TypeScript Pattern
+
 ```typescript
 async function fetchData() {
   try {
@@ -296,6 +321,7 @@ async function fetchData() {
 ```
 
 ### Go Pattern
+
 ```go
 func fetchData() (*Data, error) {
     data, err := service.Fetch()
@@ -321,18 +347,20 @@ data, err := service.FetchWithContext(ctx)
 ## Testing
 
 ### TypeScript
-```typescript
-import { describe, it, expect } from 'vitest';
 
-describe('Client', () => {
-  it('fetches page', async () => {
-    const page = await client.getPage('/test');
+```typescript
+import { describe, it, expect } from "vitest";
+
+describe("Client", () => {
+  it("fetches page", async () => {
+    const page = await client.getPage("/test");
     expect(page).toBeDefined();
   });
 });
 ```
 
 ### Go
+
 ```go
 import "testing"
 
@@ -388,6 +416,7 @@ if page != nil && page.Dictionary != nil {
 ### Import Cycles
 
 If you encounter import cycles:
+
 - Use interfaces
 - Move shared types to a common package
 - Use `interface{}` and type assertions
@@ -404,4 +433,3 @@ If you encounter import cycles:
 - GitHub Issues: [Report issues](https://github.com/your-repo/issues)
 - Documentation: [Read the docs](./README.md)
 - Examples: [See examples](./examples/)
-

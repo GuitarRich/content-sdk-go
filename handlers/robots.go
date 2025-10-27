@@ -56,4 +56,3 @@ func (h *RobotsHandler) Handle(ctx middleware.Context) error {
 	ctx.SetHeader("Content-Type", "text/plain")
 	return ctx.String(http.StatusOK, content)
 }
-

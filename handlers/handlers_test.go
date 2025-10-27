@@ -145,4 +145,3 @@ func TestCatchAllHandler_GetLocaleFromContext_Default(t *testing.T) {
 		t.Errorf("expected default 'en', got '%s'", locale)
 	}
 }
-

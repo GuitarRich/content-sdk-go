@@ -25,7 +25,7 @@ func NewCatchAllHandler(sitecoreClient *client.SitecoreClient) *CatchAllHandler 
 func (h *CatchAllHandler) Handle(ctx middleware.Context) error {
 	// Get path from context (may have been rewritten by middleware)
 	path := ctx.Path()
-	
+
 	// Get site and locale from context (set by middleware)
 	site := h.getSiteFromContext(ctx)
 	locale := h.getLocaleFromContext(ctx)
@@ -74,4 +74,3 @@ func (h *CatchAllHandler) getLocaleFromContext(ctx middleware.Context) string {
 	}
 	return "en"
 }
-

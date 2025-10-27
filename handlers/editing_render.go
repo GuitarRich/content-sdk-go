@@ -54,4 +54,3 @@ func (h *EditingRenderHandler) Handle(ctx middleware.Context) error {
 	// Return page as JSON
 	return ctx.JSON(http.StatusOK, page)
 }
-

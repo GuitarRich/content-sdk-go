@@ -26,6 +26,7 @@ func NewSitecoreClient(config ClientConfig) *SitecoreClient
 ```
 
 **ClientConfig:**
+
 ```go
 type ClientConfig struct {
     APIEndpoint string              // GraphQL endpoint
@@ -46,14 +47,17 @@ func (c *SitecoreClient) GetPage(path string, options PageOptions) (*Page, error
 ```
 
 **Parameters:**
+
 - `path` (string): The page path (e.g., "/products")
 - `options` (PageOptions): Fetch options
 
 **Returns:**
+
 - `*Page`: The page data
 - `error`: Error if any
 
 **Example:**
+
 ```go
 locale := "en"
 page, err := client.GetPage("/products", models.PageOptions{
@@ -185,6 +189,7 @@ func (s *DictionaryService) FetchDictionaryData(ctx context.Context, locale, sit
 ```
 
 **Example:**
+
 ```go
 service := i18n.NewDictionaryService(endpoint, apiKey)
 phrases, err := service.FetchDictionaryData(ctx, "en", "mysite")
@@ -267,6 +272,7 @@ func (m *MediaAPI) GetResponsiveImageURL(imageField interface{}, widths []int) m
 ```
 
 **ImageParams:**
+
 ```go
 type ImageParams struct {
     Width         int
@@ -279,6 +285,7 @@ type ImageParams struct {
 ```
 
 **Example:**
+
 ```go
 api := media.NewMediaAPI("https://cdn.example.com")
 url := api.GetImageURL(imageField, &media.ImageParams{
@@ -369,6 +376,7 @@ func NewMultisiteMiddleware(config MultisiteConfig) Middleware
 ```
 
 **MultisiteConfig:**
+
 ```go
 type MultisiteConfig struct {
     DefaultSite         string
@@ -394,6 +402,7 @@ func NewLocaleMiddleware(config LocaleConfig) Middleware
 ```
 
 **LocaleConfig:**
+
 ```go
 type LocaleConfig struct {
     DefaultLanguage    string
@@ -419,6 +428,7 @@ func NewRedirectsMiddleware(config RedirectsConfig) Middleware
 ```
 
 **RedirectsConfig:**
+
 ```go
 type RedirectsConfig struct {
     RedirectsService RedirectsService
@@ -439,6 +449,7 @@ func NewPersonalizeMiddleware(config PersonalizeConfig) Middleware
 ```
 
 **PersonalizeConfig:**
+
 ```go
 type PersonalizeConfig struct {
     Enabled     bool
@@ -460,6 +471,7 @@ func NewHealthcheckMiddleware(config HealthcheckConfig) Middleware
 ```
 
 **HealthcheckConfig:**
+
 ```go
 type HealthcheckConfig struct {
     Path     string
@@ -699,4 +711,3 @@ func main() {
 - [Migration Guide](./MIGRATION_GUIDE.md) - Migrating from TypeScript
 - [Architecture](./ARCHITECTURE.md) - Architecture overview
 - [Examples](./examples/) - Complete examples
-

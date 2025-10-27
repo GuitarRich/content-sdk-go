@@ -54,4 +54,3 @@ func (h *SitemapHandler) Handle(ctx middleware.Context) error {
 	ctx.SetHeader("Content-Type", "application/xml")
 	return ctx.String(http.StatusOK, xml)
 }
-

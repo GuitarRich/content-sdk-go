@@ -272,6 +272,7 @@ go test ./client/...
 See `env.example` for a complete list of environment variables.
 
 Key variables:
+
 - `USE_EDGE_API` - Use Edge API (true) or Local API (false)
 - `SITECORE_EDGE_CONTEXT_ID` - Edge context ID
 - `SITECORE_API_KEY` - Local API key
@@ -284,6 +285,7 @@ Key variables:
 ## 🤝 Contributing
 
 Contributions are welcome! Please ensure:
+
 - All tests pass: `go test ./...`
 - Code is formatted: `go fmt ./...`
 - Follow Go best practices
@@ -302,6 +304,7 @@ This project is licensed under the MIT License.
 ## 💡 Examples
 
 See the `examples/` directory for complete working examples:
+
 - Basic Echo application
 - Multisite configuration
 - Personalization integration
@@ -310,16 +313,19 @@ See the `examples/` directory for complete working examples:
 ## 🐛 Troubleshooting
 
 ### "Page not found" errors
+
 - Verify `DEFAULT_SITE_NAME` matches your Sitecore site
 - Check `SITECORE_EDGE_CONTEXT_ID` is correct
 - Ensure the path exists in Sitecore
 
 ### GraphQL errors
+
 - Verify API key/context ID
 - Check network connectivity
 - Enable debug logging: `DEBUG=1`
 
 ### Multisite issues
+
 - Verify hostname configuration
 - Check site resolver configuration
 - Test cookie-based resolution
@@ -333,4 +339,3 @@ See the `examples/` directory for complete working examples:
 5. Deploy to production
 
 Happy coding! 🎉
-

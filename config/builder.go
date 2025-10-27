@@ -118,4 +118,3 @@ func (b *ConfigBuilder) BuildOrPanic() *Config {
 	}
 	return config
 }
-

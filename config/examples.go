@@ -92,4 +92,3 @@ func ExampleFullConfig() (*Config, error) {
 		WithDebug(true).
 		Build()
 }
-

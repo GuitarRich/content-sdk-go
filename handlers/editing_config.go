@@ -54,4 +54,3 @@ func (h *EditingConfigHandler) Handle(ctx middleware.Context) error {
 	// Return configuration as JSON
 	return ctx.JSON(http.StatusOK, h.config)
 }
-
