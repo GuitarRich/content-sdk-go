@@ -1,4 +1,4 @@
-package contentSdkGo
+package debug
 
 import (
 	"fmt"
