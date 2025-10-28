@@ -115,7 +115,7 @@ func LoadConfig() *Config {
 			Edge: EdgeAPIConfig{
 				ContextID:       utils.GetEnvVar("SITECORE_EDGE_CONTEXT_ID"),
 				ClientContextID: utils.GetEnvVar("SITECORE_EDGE_CLIENT_CONTEXT_ID"),
-				EdgeURL:         utils.GetEnvVarOrDefault("SITECORE_EDGE_URL", "https://edge.sitecorecloud.io"),
+				EdgeURL:         utils.GetEnvVarOrDefault("SITECORE_EDGE_URL", "https://edge-platform.sitecorecloud.io"),
 			},
 			Local: LocalAPIConfig{
 				APIKey:  utils.GetEnvVar("SITECORE_API_KEY"),
@@ -182,7 +182,8 @@ func (c *Config) Validate() error {
 // GetGraphQLEndpoint returns the appropriate GraphQL endpoint
 func (c *Config) GetGraphQLEndpoint() string {
 	if c.API.UseEdge {
-		return c.API.Edge.EdgeURL + "/api/graphql/v1"
+		// Edge API uses query parameter for context ID
+		return c.API.Edge.EdgeURL + "/v1/content/api/graphql/v1?sitecoreContextId=" + c.API.Edge.ContextID
 	}
 	return c.API.Local.APIHost + "/sitecore/api/graph/edge"
 }

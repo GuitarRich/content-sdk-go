@@ -8,6 +8,7 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/content-sdk-go/debug"
@@ -90,6 +91,15 @@ func (c *ClientImpl) Request(
 ) (map[string]interface{}, error) {
 	var lastErr error
 
+	debug.Common("Requesting GraphQL query: %s", query)
+	debug.Common("Variables: %+v", variables)
+	debug.Common("Timeout: %v", c.config.Timeout)
+	debug.Common("Retries: %d", c.config.Retries)
+	debug.Common("RetryDelay: %v", c.config.RetryDelay)
+	debug.Common("Headers: %+v", c.config.Headers)
+	debug.Common("Endpoint: %s", c.endpoint)
+	debug.Common("API Key: %s", c.apiKey)
+
 	// Add context timeout if not already set
 	if _, hasDeadline := ctx.Deadline(); !hasDeadline && c.config.Timeout > 0 {
 		var cancel context.CancelFunc
@@ -147,6 +157,8 @@ func (c *ClientImpl) doRequest(
 		return nil, fmt.Errorf("failed to marshal GraphQL request: %w", err)
 	}
 
+	debug.Http("Request body: %s", string(jsonData))
+
 	// Create HTTP request
 	req, err := http.NewRequestWithContext(ctx, "POST", c.endpoint, bytes.NewBuffer(jsonData))
 	if err != nil {
@@ -155,7 +167,10 @@ func (c *ClientImpl) doRequest(
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
-	if c.apiKey != "" {
+
+	// Only set sc_apikey header for local API (not Edge API)
+	// Edge API uses sitecoreContextId as a query parameter in the URL
+	if c.apiKey != "" && !isEdgeAPI(c.endpoint) {
 		req.Header.Set("sc_apikey", c.apiKey)
 	}
 
@@ -166,6 +181,7 @@ func (c *ClientImpl) doRequest(
 
 	// Execute request
 	debug.Http("GraphQL request to %s", c.endpoint)
+	debug.Http("Request headers: %+v", req.Header)
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute GraphQL request: %w", err)
@@ -200,4 +216,9 @@ func (c *ClientImpl) doRequest(
 	}
 
 	return result.Data, nil
+}
+
+// isEdgeAPI checks if the endpoint is using Edge API (contains sitecoreContextId query parameter)
+func isEdgeAPI(endpoint string) bool {
+	return strings.Contains(endpoint, "sitecoreContextId=")
 }

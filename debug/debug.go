@@ -19,7 +19,7 @@ func SetEchoLogger(l echo.Logger) {
 
 func debug(debugModule string, format string, a ...interface{}) {
 	debug := os.Getenv("DEBUG")
-	if debug == "*" || strings.Contains(debug, debugModule) {
+	if debug == "true" || strings.Contains(debug, debugModule) {
 		if echoLogger != nil {
 			echoLogger.Debugf("[%s] %s", debugModule, fmt.Sprintf(format, a...))
 			return
