@@ -1,6 +1,7 @@
 package components
 
 import (
+	"fmt"
 	"github.com/content-sdk-go/models"
 )
 
@@ -19,7 +20,7 @@ templ RichText(fieldData interface{}, fieldName string, isEditingMode bool, cssC
 			// Manual chrome markers
 			@ChromeFieldOpen(fieldName, "rich-text")
 			<div class={ "rich-text content-sdk-rich-text", cssClass } data-field-name={ fieldName }>
-				@templ.Raw(field.Value)
+				@templ.Raw(field.GetValue().(string))
 			</div>
 			@ChromeFieldClose()
 		} else {
@@ -39,10 +40,8 @@ templ RichText(fieldData interface{}, fieldName string, isEditingMode bool, cssC
 //   - cssClass: Optional CSS class to apply to the image
 templ Image(fieldData interface{}, fieldName string, isEditingMode bool, cssClass string) {
 	if field := models.ExtractImageFieldFromMap(fieldData); !field.IsEmpty() {
-		if isEditingMode && field.Editable != "" {
-			// Use editable HTML with embedded chrome from Sitecore
-			@templ.Raw(field.Editable)
-		} else if isEditingMode {
+		@templ.Raw(fmt.Sprintf("Image field: %+v", field))
+		if isEditingMode {
 			// Manual chrome markers
 			@ChromeFieldOpen(fieldName, "image")
 			if field.GetWidth() != "" && field.GetHeight() != "" {
@@ -81,6 +80,8 @@ templ Image(fieldData interface{}, fieldName string, isEditingMode bool, cssClas
 				/>
 			}
 		}
+	} else {
+		@templ.Raw(fmt.Sprintf("Image field is empty: %+v", fieldData))
 	}
 }
 
@@ -139,6 +140,26 @@ templ Link(fieldData interface{}, fieldName string, isEditingMode bool, cssClass
 					{ field.GetText() }
 				}
 			</a>
+		}
+	}
+}
+
+// PlainText renders a plain text field value without any wrapper tag
+// This is useful for inserting text directly into existing HTML or when you don't need a wrapper
+// Parameters:
+//   - fieldData: The raw field data from Sitecore
+//   - fieldName: The field name (used for chrome markers)
+//   - isEditingMode: Whether we're in editing mode
+templ PlainText(fieldData interface{}, fieldName string, isEditingMode bool) {
+	if field := models.ExtractTextFieldFromMap(fieldData); !field.IsEmpty() {
+		if isEditingMode {
+			// Manual chrome markers with span wrapper for editing
+			@ChromeFieldOpen(fieldName, "text")
+			<span data-field-name={ fieldName }>{ field.Value }</span>
+			@ChromeFieldClose()
+		} else {
+			// Normal mode - just the text value
+			{ field.Value }
 		}
 	}
 }

@@ -27,6 +27,7 @@ templ UnknownComponent(componentName string, data interface{}) {
 // This is a utility for rendering Sitecore placeholders with their nested components
 templ RenderPlaceholder(name string, components []templ.Component) {
 	<div class={ "placeholder-" + name } data-placeholder={ name }>
+	<h5>Placeholder: { name }</h5>
 		for _, component := range components {
 			@component
 		}

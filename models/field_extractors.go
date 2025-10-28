@@ -1,5 +1,9 @@
 package models
 
+import (
+	"github.com/content-sdk-go/debug"
+)
+
 // ExtractTextFieldFromMap extracts a TextField from generic field data
 // Handles both jsonValue.value and direct value patterns
 func ExtractTextFieldFromMap(fieldData interface{}) *TextField {
@@ -76,18 +80,21 @@ func ExtractRichTextFieldFromMap(fieldData interface{}) *RichTextField {
 // Handles both jsonValue.value and direct property patterns
 func ExtractImageFieldFromMap(fieldData interface{}) *ImageField {
 	if fieldData == nil {
+		debug.Common("ExtractImageFieldFromMap fieldData is nil")
 		return &ImageField{}
 	}
 
 	fieldMap, ok := fieldData.(map[string]interface{})
 	if !ok {
+		debug.Common("ExtractImageFieldFromMap fieldMap is not a map, fieldData type: %T", fieldData)
 		return &ImageField{}
 	}
 
 	field := &ImageField{}
 
+	fieldValues, ok := fieldMap["value"].(map[string]interface{})
 	// Try jsonValue.value pattern (standard Sitecore format)
-	if jsonValue, ok := fieldMap["jsonValue"].(map[string]interface{}); ok {
+	if jsonValue, ok := fieldValues["jsonValue"].(map[string]interface{}); ok {
 		if value, ok := jsonValue["value"].(map[string]interface{}); ok {
 			// Extract nested value structure
 			field.Value = &ImageFieldValue{}
@@ -110,16 +117,16 @@ func ExtractImageFieldFromMap(fieldData interface{}) *ImageField {
 		}
 	} else {
 		// Try direct properties (fallback)
-		if src, ok := fieldMap["src"].(string); ok {
+		if src, ok := fieldValues["src"].(string); ok {
 			field.Src = src
 		}
-		if alt, ok := fieldMap["alt"].(string); ok {
+		if alt, ok := fieldValues["alt"].(string); ok {
 			field.Alt = alt
 		}
-		if width, ok := fieldMap["width"].(string); ok {
+		if width, ok := fieldValues["width"].(string); ok {
 			field.Width = width
 		}
-		if height, ok := fieldMap["height"].(string); ok {
+		if height, ok := fieldValues["height"].(string); ok {
 			field.Height = height
 		}
 	}

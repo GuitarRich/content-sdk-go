@@ -59,12 +59,12 @@ templ RenderComponentWithChromeData(
 	rendering *layoutservice.ComponentRendering,
 	isEditingMode bool,
 ) {
-	<!-- Component: { rendering.ComponentName } -->
+	@templ.Raw("<!-- Component: " + rendering.ComponentName + " -->")
 	if rendering.UID != nil {
-		<!-- UID: { *rendering.UID } -->
+		@templ.Raw("<!-- UID: " + *rendering.UID + " -->")
 	}
 	if rendering.DataSource != nil {
-		<!-- DataSource: { *rendering.DataSource } -->
+		@templ.Raw("<!-- DataSource: " + *rendering.DataSource + " -->")
 	}
 	// Render chrome markers only in editing mode
 	if isEditingMode && rendering.UID != nil {
@@ -76,7 +76,7 @@ templ RenderComponentWithChromeData(
 	if isEditingMode {
 		@ChromeMarkerClose()
 	}
-	<!-- End Component: { rendering.ComponentName } -->
+	@templ.Raw("<!-- End Component: " + rendering.ComponentName + " -->")
 }
 
 // ChromePlaceholderOpen renders opening marker for placeholder
