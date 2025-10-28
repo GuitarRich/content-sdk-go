@@ -1,0 +1,211 @@
+package components
+
+import (
+	"github.com/content-sdk-go/models"
+)
+
+// RichText renders a rich text field with chrome markers in editing mode
+// Parameters:
+//   - fieldData: The raw field data from Sitecore
+//   - fieldName: The field name (used for chrome markers)
+//   - isEditingMode: Whether we're in editing mode
+//   - cssClass: Optional CSS class to apply to the container
+templ RichText(fieldData interface{}, fieldName string, isEditingMode bool, cssClass string) {
+	if field := models.ExtractRichTextFieldFromMap(fieldData); !field.IsEmpty() {
+		if isEditingMode && field.Editable != "" {
+			// Use editable HTML with embedded chrome from Sitecore
+			@templ.Raw(field.Editable)
+		} else if isEditingMode {
+			// Manual chrome markers
+			@ChromeFieldOpen(fieldName, "rich-text")
+			<div class={ "rich-text content-sdk-rich-text", cssClass } data-field-name={ fieldName }>
+				@templ.Raw(field.Value)
+			</div>
+			@ChromeFieldClose()
+		} else {
+			// Normal mode - no chrome
+			<div class={ "rich-text content-sdk-rich-text", cssClass }>
+				@templ.Raw(field.Value)
+			</div>
+		}
+	}
+}
+
+// Image renders an image field with chrome markers in editing mode
+// Parameters:
+//   - fieldData: The raw field data from Sitecore
+//   - fieldName: The field name (used for chrome markers)
+//   - isEditingMode: Whether we're in editing mode
+//   - cssClass: Optional CSS class to apply to the image
+templ Image(fieldData interface{}, fieldName string, isEditingMode bool, cssClass string) {
+	if field := models.ExtractImageFieldFromMap(fieldData); !field.IsEmpty() {
+		if isEditingMode && field.Editable != "" {
+			// Use editable HTML with embedded chrome from Sitecore
+			@templ.Raw(field.Editable)
+		} else if isEditingMode {
+			// Manual chrome markers
+			@ChromeFieldOpen(fieldName, "image")
+			if field.GetWidth() != "" && field.GetHeight() != "" {
+				<img 
+					src={ templ.SafeURL(field.GetSrc()) }
+					alt={ field.GetAlt() }
+					width={ field.GetWidth() }
+					height={ field.GetHeight() }
+					class={ cssClass }
+					data-field-name={ fieldName }
+				/>
+			} else {
+				<img 
+					src={ templ.SafeURL(field.GetSrc()) }
+					alt={ field.GetAlt() }
+					class={ cssClass }
+					data-field-name={ fieldName }
+				/>
+			}
+			@ChromeFieldClose()
+		} else {
+			// Normal mode - no chrome
+			if field.GetWidth() != "" && field.GetHeight() != "" {
+				<img 
+					src={ templ.SafeURL(field.GetSrc()) }
+					alt={ field.GetAlt() }
+					width={ field.GetWidth() }
+					height={ field.GetHeight() }
+					class={ cssClass }
+				/>
+			} else {
+				<img 
+					src={ templ.SafeURL(field.GetSrc()) }
+					alt={ field.GetAlt() }
+					class={ cssClass }
+				/>
+			}
+		}
+	}
+}
+
+// Link renders a link field with chrome markers in editing mode
+// Parameters:
+//   - fieldData: The raw field data from Sitecore
+//   - fieldName: The field name (used for chrome markers)
+//   - isEditingMode: Whether we're in editing mode
+//   - cssClass: Optional CSS class to apply to the link
+//   - children: Optional child components to render inside the link (if not provided, uses link text)
+templ Link(fieldData interface{}, fieldName string, isEditingMode bool, cssClass string, children ...templ.Component) {
+	if field := models.ExtractLinkFieldFromMap(fieldData); !field.IsEmpty() {
+		if isEditingMode && field.Editable != "" {
+			// Use editable HTML with embedded chrome from Sitecore
+			@templ.Raw(field.Editable)
+		} else if isEditingMode {
+			// Manual chrome markers
+			@ChromeFieldOpen(fieldName, "link")
+			<a 
+				href={ templ.SafeURL(field.GetHref()) }
+				if field.GetTarget() != "" {
+					target={ field.GetTarget() }
+				}
+				if field.GetTitle() != "" {
+					title={ field.GetTitle() }
+				}
+				class={ field.GetClass(), cssClass }
+				data-field-name={ fieldName }
+			>
+				if len(children) > 0 {
+					for _, child := range children {
+						@child
+					}
+				} else if field.GetText() != "" {
+					{ field.GetText() }
+				}
+			</a>
+			@ChromeFieldClose()
+		} else {
+			// Normal mode - no chrome
+			<a 
+				href={ templ.SafeURL(field.GetHref()) }
+				if field.GetTarget() != "" {
+					target={ field.GetTarget() }
+				}
+				if field.GetTitle() != "" {
+					title={ field.GetTitle() }
+				}
+				class={ field.GetClass(), cssClass }
+			>
+				if len(children) > 0 {
+					for _, child := range children {
+						@child
+					}
+				} else if field.GetText() != "" {
+					{ field.GetText() }
+				}
+			</a>
+		}
+	}
+}
+
+// Text renders a simple text field with chrome markers in editing mode
+// Parameters:
+//   - fieldData: The raw field data from Sitecore
+//   - fieldName: The field name (used for chrome markers)
+//   - isEditingMode: Whether we're in editing mode
+//   - tag: The HTML tag to use (h1, h2, h3, h4, h5, h6, p, span, div)
+//   - cssClass: Optional CSS class to apply to the element
+templ Text(fieldData interface{}, fieldName string, isEditingMode bool, tag string, cssClass string) {
+	if field := models.ExtractTextFieldFromMap(fieldData); !field.IsEmpty() {
+		if isEditingMode && field.Editable != "" {
+			// Use editable HTML with embedded chrome from Sitecore
+			@templ.Raw(field.Editable)
+		} else if isEditingMode {
+			// Manual chrome markers
+			@ChromeFieldOpen(fieldName, "text")
+			switch tag {
+				case "h1":
+					<h1 class={ cssClass } data-field-name={ fieldName }>{ field.Value }</h1>
+				case "h2":
+					<h2 class={ cssClass } data-field-name={ fieldName }>{ field.Value }</h2>
+				case "h3":
+					<h3 class={ cssClass } data-field-name={ fieldName }>{ field.Value }</h3>
+				case "h4":
+					<h4 class={ cssClass } data-field-name={ fieldName }>{ field.Value }</h4>
+				case "h5":
+					<h5 class={ cssClass } data-field-name={ fieldName }>{ field.Value }</h5>
+				case "h6":
+					<h6 class={ cssClass } data-field-name={ fieldName }>{ field.Value }</h6>
+				case "p":
+					<p class={ cssClass } data-field-name={ fieldName }>{ field.Value }</p>
+				case "div":
+					<div class={ cssClass } data-field-name={ fieldName }>{ field.Value }</div>
+				case "span":
+					<span class={ cssClass } data-field-name={ fieldName }>{ field.Value }</span>
+				default:
+					<span class={ cssClass } data-field-name={ fieldName }>{ field.Value }</span>
+			}
+			@ChromeFieldClose()
+		} else {
+			// Normal mode - no chrome
+			switch tag {
+				case "h1":
+					<h1 class={ cssClass }>{ field.Value }</h1>
+				case "h2":
+					<h2 class={ cssClass }>{ field.Value }</h2>
+				case "h3":
+					<h3 class={ cssClass }>{ field.Value }</h3>
+				case "h4":
+					<h4 class={ cssClass }>{ field.Value }</h4>
+				case "h5":
+					<h5 class={ cssClass }>{ field.Value }</h5>
+				case "h6":
+					<h6 class={ cssClass }>{ field.Value }</h6>
+				case "p":
+					<p class={ cssClass }>{ field.Value }</p>
+				case "div":
+					<div class={ cssClass }>{ field.Value }</div>
+				case "span":
+					<span class={ cssClass }>{ field.Value }</span>
+				default:
+					<span class={ cssClass }>{ field.Value }</span>
+			}
+		}
+	}
+}
+

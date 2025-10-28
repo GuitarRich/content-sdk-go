@@ -29,6 +29,29 @@ templ ChromeMarkerClose() {
 	></code>
 }
 
+// ChromeFieldOpen renders the opening Sitecore field chrome marker
+// This enables inline editing of individual fields in the Experience Editor
+templ ChromeFieldOpen(fieldName string, fieldType string) {
+	<code 
+		type="text/sitecore" 
+		chrometype="field" 
+		class="scpm" 
+		kind="open"
+		data-field-name={ fieldName }
+		data-field-type={ fieldType }
+	></code>
+}
+
+// ChromeFieldClose renders the closing Sitecore field chrome marker
+templ ChromeFieldClose() {
+	<code 
+		type="text/sitecore" 
+		chrometype="field" 
+		class="scpm" 
+		kind="close"
+	></code>
+}
+
 // RenderComponentWithChromeData renders a component with chrome markers and metadata
 // This is the main wrapper for components in editing mode
 templ RenderComponentWithChromeData(
