@@ -1,0 +1,103 @@
+package components
+
+import (
+	layoutservice "github.com/content-sdk-go/layoutService"
+)
+
+// ChromeMarkerOpen renders the opening Sitecore chrome marker
+// This marks the start of a component in the Experience Editor
+templ ChromeMarkerOpen(uid string) {
+	<code 
+		type="text/sitecore" 
+		chrometype="rendering" 
+		class="scpm" 
+		kind="open" 
+		id={ uid }
+		style="cursor:pointer;"
+	></code>
+}
+
+// ChromeMarkerClose renders the closing Sitecore chrome marker
+// This marks the end of a component in the Experience Editor
+templ ChromeMarkerClose() {
+	<code 
+		type="text/sitecore" 
+		chrometype="rendering" 
+		class="scpm" 
+		kind="close" 
+		style="cursor:pointer;"
+	></code>
+}
+
+// RenderComponentWithChromeData renders a component with chrome markers and metadata
+// This is the main wrapper for components in editing mode
+templ RenderComponentWithChromeData(
+	component templ.Component,
+	rendering *layoutservice.ComponentRendering,
+	isEditingMode bool,
+) {
+	<!-- Component: { rendering.ComponentName } -->
+	if rendering.UID != nil {
+		<!-- UID: { *rendering.UID } -->
+	}
+	if rendering.DataSource != nil {
+		<!-- DataSource: { *rendering.DataSource } -->
+	}
+	// Render chrome markers only in editing mode
+	if isEditingMode && rendering.UID != nil {
+		@ChromeMarkerOpen(*rendering.UID)
+	}
+	// Render the actual component
+	@component
+	// Close chrome marker in editing mode
+	if isEditingMode {
+		@ChromeMarkerClose()
+	}
+	<!-- End Component: { rendering.ComponentName } -->
+}
+
+// ChromePlaceholderOpen renders opening marker for placeholder
+templ ChromePlaceholderOpen(placeholderKey string, placeholderName string) {
+	<code
+		type="text/sitecore"
+		chrometype="placeholder"
+		class="scpm"
+		kind="open"
+		id={ placeholderKey }
+		key={ placeholderKey }
+		data-placeholder-name={ placeholderName }
+		style="cursor:pointer;"
+	></code>
+}
+
+// ChromePlaceholderClose renders closing marker for placeholder
+templ ChromePlaceholderClose() {
+	<code
+		type="text/sitecore"
+		chrometype="placeholder"
+		class="scpm"
+		kind="close"
+		style="cursor:pointer;"
+	></code>
+}
+
+// RenderPlaceholderWithChrome renders a placeholder with chrome markers in editing mode
+templ RenderPlaceholderWithChrome(
+	name string,
+	components []templ.Component,
+	isEditingMode bool,
+	placeholderKey string,
+) {
+	<div class={ "placeholder-" + name } data-placeholder={ name }>
+		if isEditingMode {
+			@ChromePlaceholderOpen(placeholderKey, name)
+		}
+		for _, component := range components {
+			@component
+		}
+		if isEditingMode {
+			@ChromePlaceholderClose()
+		}
+	</div>
+}
+

@@ -15,6 +15,15 @@ type Page struct {
 
 	// HeadLinks contains HTML link tags for the page (stylesheets, etc.)
 	HeadLinks []HTMLLink `json:"headLinks,omitempty"`
+
+	// EditingContext contains information about the editing state
+	EditingContext *EditingContext `json:"editingContext,omitempty"`
+
+	// Page metadata for rendering
+	Path     string `json:"path,omitempty"`
+	Language string `json:"language,omitempty"`
+	Site     string `json:"site,omitempty"`
+	ItemID   string `json:"itemId,omitempty"`
 }
 
 // DictionaryPhrases maps dictionary keys to their translated values
@@ -66,6 +75,22 @@ const (
 	// PageModeEdit is editing mode (Sitecore Pages editor)
 	PageModeEdit PageMode = "edit"
 )
+
+// EditingContext contains information about the page editing state
+// Used to determine whether to render Sitecore chrome markers
+type EditingContext struct {
+	// IsEditing indicates if the page is being viewed in the Experience Editor
+	IsEditing bool `json:"isEditing"`
+
+	// IsPreview indicates if the page is being previewed
+	IsPreview bool `json:"isPreview"`
+
+	// Mode contains the specific editing mode (edit, preview, normal)
+	Mode PageMode `json:"mode"`
+
+	// QueryParams contains the Sitecore query parameters
+	QueryParams map[string]string `json:"queryParams,omitempty"`
+}
 
 // StaticPath represents a path for static site generation
 type StaticPath struct {
