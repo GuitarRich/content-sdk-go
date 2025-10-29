@@ -151,10 +151,15 @@ func ExtractLinkFieldFromMap(fieldData interface{}) *LinkField {
 		return &LinkField{}
 	}
 
+	fieldValues, ok := fieldMap["value"].(map[string]interface{})
+	if !ok {
+		return &LinkField{}
+	}
+
 	field := &LinkField{}
 
 	// Try jsonValue.value pattern (standard Sitecore format)
-	if jsonValue, ok := fieldMap["jsonValue"].(map[string]interface{}); ok {
+	if jsonValue, ok := fieldValues["jsonValue"].(map[string]interface{}); ok {
 		if value, ok := jsonValue["value"].(map[string]interface{}); ok {
 			// Extract nested value structure
 			field.Value = &LinkFieldValue{}
@@ -181,25 +186,25 @@ func ExtractLinkFieldFromMap(fieldData interface{}) *LinkField {
 		}
 	} else {
 		// Try direct properties (fallback)
-		if href, ok := fieldMap["href"].(string); ok {
+		if href, ok := fieldValues["href"].(string); ok {
 			field.Href = href
 		}
-		if text, ok := fieldMap["text"].(string); ok {
+		if text, ok := fieldValues["text"].(string); ok {
 			field.Text = text
 		}
-		if target, ok := fieldMap["target"].(string); ok {
+		if target, ok := fieldValues["target"].(string); ok {
 			field.Target = target
 		}
-		if title, ok := fieldMap["title"].(string); ok {
+		if title, ok := fieldValues["title"].(string); ok {
 			field.Title = title
 		}
-		if class, ok := fieldMap["class"].(string); ok {
+		if class, ok := fieldValues["class"].(string); ok {
 			field.Class = class
 		}
 	}
 
 	// Extract editable metadata (contains pre-wrapped HTML with chrome)
-	if editable, ok := fieldMap["editable"].(string); ok {
+	if editable, ok := fieldValues["editable"].(string); ok {
 		field.Editable = editable
 	}
 

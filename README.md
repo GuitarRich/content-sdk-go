@@ -21,6 +21,29 @@ A comprehensive Go SDK for building Sitecore XM Cloud applications with multisit
 go get github.com/content-sdk-go
 ```
 
+### Templ Component Generation
+
+This SDK includes [templ](https://templ.guide/) components for rendering Sitecore fields and components. After installation or when modifying `.templ` files, you need to generate the Go code:
+
+```bash
+# Install templ CLI (if not already installed)
+go install github.com/a-h/templ/cmd/templ@latest
+
+# Generate templ files
+cd content-sdk-go
+./generate.sh
+
+# Or manually
+templ generate
+```
+
+**Note:** Build scripts in example applications automatically generate SDK templ files before building. If you're creating a new application, ensure your build process includes SDK templ generation:
+
+```bash
+# In your build script
+(cd path/to/content-sdk-go && templ generate) && templ generate
+```
+
 ## 🏗️ Quick Start
 
 ### 1. Configuration
@@ -121,6 +144,7 @@ e.Use(middleware.AdaptMiddlewareToEcho(
 ```
 content-sdk-go/
 ├── client/           # Core Sitecore client (GetPage, GetPreview, etc.)
+├── components/       # Templ components for rendering fields and editing chrome
 ├── config/           # Configuration management
 ├── graphql/          # GraphQL client with retries
 ├── handlers/         # HTTP handlers (catch-all, robots, sitemap, editing)

@@ -38,18 +38,28 @@ templ RichText(fieldData interface{}, fieldName string, isEditingMode bool, cssC
 //   - fieldName: The field name (used for chrome markers)
 //   - isEditingMode: Whether we're in editing mode
 //   - cssClass: Optional CSS class to apply to the image
-templ Image(fieldData interface{}, fieldName string, isEditingMode bool, cssClass string) {
+//   - width: Optional width to override field's width (pass "" to use field's width)
+//   - height: Optional height to override field's height (pass "" to use field's height)
+templ Image(fieldData interface{}, fieldName string, isEditingMode bool, cssClass string, width string, height string) {
 	if field := models.ExtractImageFieldFromMap(fieldData); !field.IsEmpty() {
-		@templ.Raw(fmt.Sprintf("Image field: %+v", field))
 		if isEditingMode {
 			// Manual chrome markers
 			@ChromeFieldOpen(fieldName, "image")
-			if field.GetWidth() != "" && field.GetHeight() != "" {
+			// Determine which width and height to use
+			if (width != "" || field.GetWidth() != "") && (height != "" || field.GetHeight() != "") {
 				<img 
 					src={ templ.SafeURL(field.GetSrc()) }
 					alt={ field.GetAlt() }
-					width={ field.GetWidth() }
-					height={ field.GetHeight() }
+					if width != "" {
+						width={ width }
+					} else {
+						width={ field.GetWidth() }
+					}
+					if height != "" {
+						height={ height }
+					} else {
+						height={ field.GetHeight() }
+					}
 					class={ cssClass }
 					data-field-name={ fieldName }
 				/>
@@ -64,12 +74,21 @@ templ Image(fieldData interface{}, fieldName string, isEditingMode bool, cssClas
 			@ChromeFieldClose()
 		} else {
 			// Normal mode - no chrome
-			if field.GetWidth() != "" && field.GetHeight() != "" {
+			// Determine which width and height to use
+			if (width != "" || field.GetWidth() != "") && (height != "" || field.GetHeight() != "") {
 				<img 
 					src={ templ.SafeURL(field.GetSrc()) }
 					alt={ field.GetAlt() }
-					width={ field.GetWidth() }
-					height={ field.GetHeight() }
+					if width != "" {
+						width={ width }
+					} else {
+						width={ field.GetWidth() }
+					}
+					if height != "" {
+						height={ height }
+					} else {
+						height={ field.GetHeight() }
+					}
 					class={ cssClass }
 				/>
 			} else {
@@ -94,10 +113,7 @@ templ Image(fieldData interface{}, fieldName string, isEditingMode bool, cssClas
 //   - children: Optional child components to render inside the link (if not provided, uses link text)
 templ Link(fieldData interface{}, fieldName string, isEditingMode bool, cssClass string, children ...templ.Component) {
 	if field := models.ExtractLinkFieldFromMap(fieldData); !field.IsEmpty() {
-		if isEditingMode && field.Editable != "" {
-			// Use editable HTML with embedded chrome from Sitecore
-			@templ.Raw(field.Editable)
-		} else if isEditingMode {
+		if isEditingMode {
 			// Manual chrome markers
 			@ChromeFieldOpen(fieldName, "link")
 			<a 

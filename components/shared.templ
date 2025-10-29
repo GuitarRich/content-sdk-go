@@ -1,6 +1,7 @@
 package components
 
 import (
+	"fmt"
 	layoutservice "github.com/content-sdk-go/layoutService"
 )
 
@@ -27,10 +28,13 @@ templ UnknownComponent(componentName string, data interface{}) {
 // This is a utility for rendering Sitecore placeholders with their nested components
 templ RenderPlaceholder(name string, components []templ.Component) {
 	<div class={ "placeholder-" + name } data-placeholder={ name }>
-	<h5>Placeholder: { name }</h5>
+	@templ.Raw(fmt.Sprintf("<!-- Placeholder: %s -->", name))
+	@templ.Raw(fmt.Sprintf("<!-- Components: %d -->", len(components)))
+	@templ.Raw("<!-- Start Components -->")
 		for _, component := range components {
 			@component
 		}
+	@templ.Raw("<!-- End Components -->")
 	</div>
 }
 
