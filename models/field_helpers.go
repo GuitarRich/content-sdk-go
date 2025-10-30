@@ -77,3 +77,15 @@ func IsFieldEmpty(fieldData any) bool {
 func FieldHasValue(fieldData any) bool {
 	return !IsFieldEmpty(fieldData)
 }
+
+// GetStringParam extracts a string parameter value from the params map
+// This is commonly used for component parameters like RenderingIdentifier, DynamicPlaceholderId, etc.
+func GetStringParam(params map[string]any, key string) string {
+	if params == nil {
+		return ""
+	}
+	if val, ok := params[key].(string); ok {
+		return val
+	}
+	return ""
+}

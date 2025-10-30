@@ -3,6 +3,7 @@ package components
 import (
 	"fmt"
 	layoutservice "github.com/content-sdk-go/layoutService"
+	"github.com/content-sdk-go/models"
 )
 
 // UnknownComponent renders a fallback for unknown/unimplemented components
@@ -61,5 +62,30 @@ templ RenderEmptyPlaceholder(name string, editingMode bool) {
 			</div>
 		}
 	</div>
+}
+
+// RenderDynamicPlaceholder renders a Sitecore dynamic placeholder with simplified syntax.
+// It automatically appends the DynamicPlaceholderId from params to the placeholder name.
+// This is the recommended way to render placeholders in components.
+//
+// Usage:
+//   @sdkcomponents.RenderDynamicPlaceholder("placeholder-name", params)
+//
+// The function will:
+// 1. Extract the __placeholders map from params
+// 2. Get the DynamicPlaceholderId from params
+// 3. Construct the full placeholder key as "placeholder-name-{dynamicId}"
+// 4. Render the placeholder components if found
+//
+// Example:
+//   <div class="footer-links">
+//       @sdkcomponents.RenderDynamicPlaceholder("footer-primary-links", params)
+//   </div>
+templ RenderDynamicPlaceholder(placeholderName string, params map[string]interface{}) {
+	if placeholders, ok := params["__placeholders"].(map[string][]templ.Component); ok {
+		if dynamicId := models.GetStringParam(params, "DynamicPlaceholderId"); dynamicId != "" {
+			@RenderPlaceholder(placeholderName+"-"+dynamicId, placeholders[placeholderName+"-"+dynamicId])
+		}
+	}
 }
 
