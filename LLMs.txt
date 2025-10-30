@@ -1,0 +1,607 @@
+# Sitecore Content SDK Go - LLM Guidance
+
+## Overview
+
+Sitecore Content SDK for Go - High-performance SDK for building server-rendered web applications with Sitecore XM Cloud.
+
+**Language**: Go 1.21+
+**Template Engine**: Templ (https://templ.guide)
+**Frameworks**: Echo v4, adaptable to others
+
+## Three Critical Rules
+
+When generating code for this project, ALWAYS follow these three non-negotiable rules:
+
+### 1. ALWAYS Use SDK Field Renderer Components
+
+```templ
+// ✅ CORRECT
+@sdkcomponents.PlainText(ds.TitleRaw, "title", isEditingMode)
+@sdkcomponents.Link(item.LinkRaw, "link", isEditingMode, "css-class")
+@sdkcomponents.RichText(ds.ContentRaw, "content", isEditingMode, "")
+@sdkcomponents.Image(ds.ImageRaw, "image", isEditingMode, "", "", "")
+
+// ❌ WRONG
+{ ds.Title.Value }
+<a href={link.GetHref()}>{ link.GetText() }</a>
+```
+
+**Why**: SDK components handle Experience Editor chrome markers for in-page editing. Manual rendering breaks this.
+
+### 2. ALWAYS Extract Datasource to Strongly-Typed Structs
+
+```go
+// ✅ CORRECT
+type LinkListDatasource struct {
+    Title    *sdkmodels.TextField
+    TitleRaw interface{}
+    Items    []*LinkListItem
+}
+
+func ExtractLinkListDatasource(datasource map[string]interface{}) *LinkListDatasource {
+    // Extract to typed struct
+}
+
+// Template usage
+ds := models.ExtractLinkListDatasource(datasource)
+for _, item := range ds.Items { ... }
+
+// ❌ WRONG
+if data, ok := datasource["data"].(map[string]interface{}); ok {
+    if ds, ok := data["datasource"].(map[string]interface{}); ok {
+        // Multiple levels of nesting
+    }
+}
+```
+
+**Why**: Reduces complexity from 5+ nested type assertions to a single extraction call. Improves maintainability and type safety.
+
+### 3. ALWAYS Store Both Typed and Raw Field Data
+
+```go
+// ✅ CORRECT
+type ComponentDatasource struct {
+    Title    *sdkmodels.TextField  // For validation and logic
+    TitleRaw interface{}            // For SDK component rendering
+    Link     *sdkmodels.LinkField   // For validation and logic
+    LinkRaw  interface{}            // For SDK component rendering
+}
+
+// Extraction
+titleField := GetFieldByName(field, "title")
+result.Title = sdkmodels.ExtractTextFieldFromMap(titleField)
+result.TitleRaw = titleField  // Store raw for SDK
+
+// Usage
+if ds.Title != nil && !ds.Title.IsEmpty() {  // Use typed for logic
+    @sdkcomponents.PlainText(ds.TitleRaw, "title", isEditingMode)  // Use raw for rendering
+}
+```
+
+**Why**: Typed fields for validation/logic, raw fields for SDK rendering. Best of both worlds.
+
+## Repository Structure
+
+```
+xmc-go/
+├── content-sdk-go/              # Core SDK
+│   ├── models/                  # Field types (TextField, LinkField, etc.)
+│   ├── components/              # Field renderers (Templ)
+│   ├── client/                  # Sitecore API clients
+│   ├── layoutService/           # Layout Service integration
+│   ├── handlers/                # HTTP handlers
+│   └── middleware/              # HTTP middleware
+└── xmcloud-starter-go/          # Example applications
+    └── examples/
+        ├── basic-go/
+        └── kit-go-product-listing/
+```
+
+## Go Naming Conventions
+
+**Packages**: lowercase, single word
+- `models`, `handlers`, `components`
+
+**Types**: PascalCase
+- `TextField`, `LinkListDatasource`, `ComponentFields`
+
+**Functions**:
+- Exported: PascalCase - `ExtractLinkField`, `GetPage`
+- Unexported: camelCase - `extractLinkListItem`, `parseConfig`
+- Boolean: Prefix with `Is`, `Has`, `Can`, `Should`
+
+**Variables**:
+- camelCase - `isEditingMode`, `datasource`
+- Short names in small scopes - `ds`, `item`, `err`
+
+**Constants**:
+- Exported PascalCase - `DefaultTimeout`, `MaxRetries`
+- Unexported camelCase - `defaultPort`
+
+## Import Organization
+
+```go
+import (
+    // 1. Standard library
+    "context"
+    "fmt"
+    
+    // 2. External dependencies
+    "github.com/labstack/echo/v4"
+    
+    // 3. SDK imports (aliased)
+    sdkcomponents "github.com/content-sdk-go/components"
+    sdkmodels "github.com/content-sdk-go/models"
+    
+    // 4. Local imports
+    "github.com/xmcloud-starter-go/.../models"
+)
+```
+
+## Templ Template Syntax
+
+### Components
+
+```templ
+package components
+
+import sdkcomponents "github.com/content-sdk-go/components"
+
+templ LinkList(fields interface{}, params map[string]interface{}) {
+    if ds := models.ExtractLinkListDatasource(datasource); ds.HasItems() {
+        <div>
+            @sdkcomponents.PlainText(ds.TitleRaw, "title", isEditingMode)
+            for _, item := range ds.Items {
+                @sdkcomponents.Link(item.LinkRaw, "link", isEditingMode, "")
+            }
+        </div>
+    }
+}
+```
+
+### Syntax Reference
+
+```templ
+// Component calls: @ prefix
+@ComponentName(params)
+@sdkcomponents.PlainText(field, name, editing)
+
+// Control flow: no @ prefix
+if condition { }
+for _, item := range items { }
+switch value { }
+
+// Expressions: curly braces
+{ variableName }
+{ field.Value }
+{ function(param) }
+
+// Attributes
+class={ "base-class", conditional, "another" }
+href={ templ.SafeURL(url) }
+
+// Raw HTML
+@templ.Raw(htmlString)
+```
+
+## Field Types
+
+```go
+import sdkmodels "github.com/content-sdk-go/models"
+
+// Available types
+*sdkmodels.TextField       // Single/Multi-line text
+*sdkmodels.RichTextField   // Rich text HTML
+*sdkmodels.LinkField       // General Link
+*sdkmodels.ImageField      // Image field
+
+// All implement Field interface
+type Field interface {
+    GetValue() interface{}
+    GetEditable() string
+    IsEmpty() bool
+}
+```
+
+## SDK Components
+
+```templ
+// Text fields
+@sdkcomponents.PlainText(fieldData, fieldName, isEditingMode)
+@sdkcomponents.Text(fieldData, fieldName, isEditingMode, tag, cssClass)
+
+// Rich text
+@sdkcomponents.RichText(fieldData, fieldName, isEditingMode, cssClass)
+
+// Links
+@sdkcomponents.Link(fieldData, fieldName, isEditingMode, cssClass)
+@sdkcomponents.Link(fieldData, fieldName, isEditingMode, cssClass) {
+    // Children content
+}
+
+// Images
+@sdkcomponents.Image(fieldData, fieldName, isEditingMode, cssClass, width, height)
+```
+
+## Standard Patterns
+
+### Component Model
+
+```go
+package models
+
+import sdkmodels "github.com/content-sdk-go/models"
+
+type ComponentDatasource struct {
+    // Typed fields for validation
+    Title *sdkmodels.TextField
+    Image *sdkmodels.ImageField
+    Link  *sdkmodels.LinkField
+    
+    // Raw fields for SDK rendering
+    TitleRaw interface{}
+    ImageRaw interface{}
+    LinkRaw  interface{}
+}
+
+func ExtractComponentDatasource(datasource map[string]interface{}) *ComponentDatasource {
+    if datasource == nil {
+        return &ComponentDatasource{}
+    }
+    
+    result := &ComponentDatasource{}
+    
+    if field, ok := datasource["field"].(map[string]interface{}); ok {
+        // Extract title
+        titleField := GetFieldByName(field, "title")
+        result.Title = sdkmodels.ExtractTextFieldFromMap(titleField)
+        result.TitleRaw = titleField
+        
+        // Extract other fields...
+    }
+    
+    return result
+}
+
+func (d *ComponentDatasource) HasTitle() bool {
+    return d != nil && d.Title != nil && !d.Title.IsEmpty()
+}
+```
+
+### Component Template
+
+```templ
+package components
+
+import (
+    sdkcomponents "github.com/content-sdk-go/components"
+    "github.com/.../models"
+)
+
+templ Component(fields interface{}, params map[string]interface{}) {
+    if datasource := models.ExtractDatasourceField(fields); datasource != nil {
+        if ds := models.ExtractComponentDatasource(datasource); ds != nil {
+            @componentContent(ds, params)
+        }
+    }
+}
+
+templ componentContent(ds *models.ComponentDatasource, params map[string]interface{}) {
+    if isEditingMode := GetEditingMode(params); true {
+        <div>
+            if ds.HasTitle() {
+                <h1>
+                    @sdkcomponents.PlainText(ds.TitleRaw, "title", isEditingMode)
+                </h1>
+            }
+            
+            if ds.Image != nil && !ds.Image.IsEmpty() {
+                @sdkcomponents.Image(ds.ImageRaw, "image", isEditingMode, "w-full", "", "")
+            }
+            
+            if ds.Link != nil && !ds.Link.IsEmpty() {
+                @sdkcomponents.Link(ds.LinkRaw, "cta", isEditingMode, "btn btn-primary")
+            }
+        </div>
+    }
+}
+```
+
+## Error Handling
+
+```go
+// ✅ ALWAYS handle errors
+func GetPage(path string) (*Page, error) {
+    data, err := fetchData(path)
+    if err != nil {
+        return nil, fmt.Errorf("fetch data: %w", err)
+    }
+    
+    return parsePage(data)
+}
+
+// ❌ NEVER ignore errors
+data, _ := fetchData(path)
+
+// ❌ NEVER panic in production
+if err != nil {
+    panic(err)
+}
+
+// ✅ Use guard clauses
+func Process(field interface{}) string {
+    if field == nil {
+        return ""
+    }
+    
+    fieldMap, ok := field.(map[string]interface{})
+    if !ok {
+        return ""
+    }
+    
+    // ... processing
+}
+```
+
+## Testing
+
+```go
+func TestExtractComponentDatasource(t *testing.T) {
+    tests := []struct {
+        name  string
+        input map[string]interface{}
+        want  *ComponentDatasource
+    }{
+        {
+            name: "valid datasource",
+            input: map[string]interface{}{
+                "field": map[string]interface{}{
+                    "title": map[string]interface{}{
+                        "jsonValue": map[string]interface{}{
+                            "value": "Test",
+                        },
+                    },
+                },
+            },
+            want: &ComponentDatasource{
+                Title: &sdkmodels.TextField{Value: "Test"},
+            },
+        },
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got := ExtractComponentDatasource(tt.input)
+            
+            if got.Title.Value != tt.want.Title.Value {
+                t.Errorf("got %v, want %v", got.Title.Value, tt.want.Title.Value)
+            }
+        })
+    }
+}
+```
+
+## Documentation
+
+```go
+// ComponentDatasource represents the strongly-typed structure for a component's data.
+// It contains both typed fields for validation and raw data for SDK rendering.
+type ComponentDatasource struct {
+    Title    *sdkmodels.TextField
+    TitleRaw interface{}
+}
+
+// HasTitle checks if the component has a non-empty title field.
+func (d *ComponentDatasource) HasTitle() bool {
+    return d != nil && d.Title != nil && !d.Title.IsEmpty()
+}
+
+// ExtractComponentDatasource converts a generic datasource map into a strongly-typed ComponentDatasource.
+//
+// Parameters:
+//   - datasource: The raw datasource map from Sitecore Layout Service
+//
+// Returns:
+//   - *ComponentDatasource: A strongly-typed datasource with extracted fields
+func ExtractComponentDatasource(datasource map[string]interface{}) *ComponentDatasource {
+    // ... implementation
+}
+```
+
+## Anti-Patterns
+
+### ❌ Manual Field Rendering
+```templ
+// WRONG - Breaks Experience Editor
+<h1>{ ds.Title.Value }</h1>
+<a href={link.GetHref()}>{ link.GetText() }</a>
+```
+
+### ✅ Use SDK Components
+```templ
+// CORRECT - Works in Experience Editor
+@sdkcomponents.PlainText(ds.TitleRaw, "title", isEditingMode)
+@sdkcomponents.Link(item.LinkRaw, "link", isEditingMode, "")
+```
+
+### ❌ Nested Type Assertions
+```go
+// WRONG - Complex, error-prone
+if data, ok := datasource["data"].(map[string]interface{}); ok {
+    if ds, ok := data["datasource"].(map[string]interface{}); ok {
+        if children, ok := ds["children"].(map[string]interface{}); ok {
+            // Too many levels
+        }
+    }
+}
+```
+
+### ✅ Strongly-Typed Extraction
+```go
+// CORRECT - Extract once, use throughout
+ds := models.ExtractLinkListDatasource(datasource)
+for _, item := range ds.Items { ... }
+```
+
+### ❌ Ignoring Errors
+```go
+// WRONG
+data, _ := fetchData()
+```
+
+### ✅ Handle All Errors
+```go
+// CORRECT
+data, err := fetchData()
+if err != nil {
+    return fmt.Errorf("fetch data: %w", err)
+}
+```
+
+## Common Patterns
+
+### List Component
+
+```go
+type ListDatasource struct {
+    Title    *sdkmodels.TextField
+    TitleRaw interface{}
+    Items    []*ListItem
+}
+
+type ListItem struct {
+    Link    *sdkmodels.LinkField
+    LinkRaw interface{}
+}
+
+func (d *ListDatasource) HasItems() bool {
+    return d != nil && len(d.Items) > 0
+}
+```
+
+```templ
+templ List(fields interface{}, params map[string]interface{}) {
+    if ds := models.ExtractListDatasource(datasource); ds.HasItems() {
+        <div>
+            <h3>
+                @sdkcomponents.PlainText(ds.TitleRaw, "title", isEditingMode)
+            </h3>
+            <ul>
+                for _, item := range ds.Items {
+                    <li>
+                        @sdkcomponents.Link(item.LinkRaw, "link", isEditingMode, "")
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+}
+```
+
+### Hero Component
+
+```go
+type HeroDatasource struct {
+    Title       *sdkmodels.TextField
+    Subtitle    *sdkmodels.TextField
+    Image       *sdkmodels.ImageField
+    CTALink     *sdkmodels.LinkField
+    
+    TitleRaw    interface{}
+    SubtitleRaw interface{}
+    ImageRaw    interface{}
+    CTALinkRaw  interface{}
+}
+
+func (d *HeroDatasource) HasCTA() bool {
+    return d.CTALink != nil && !d.CTALink.IsEmpty()
+}
+```
+
+```templ
+templ Hero(fields interface{}, params map[string]interface{}) {
+    if ds := models.ExtractHeroDatasource(datasource); ds != nil {
+        <section class="hero">
+            if ds.Image != nil && !ds.Image.IsEmpty() {
+                @sdkcomponents.Image(ds.ImageRaw, "hero-image", isEditingMode, "w-full", "", "")
+            }
+            
+            <div class="hero-content">
+                <h1>
+                    @sdkcomponents.PlainText(ds.TitleRaw, "title", isEditingMode)
+                </h1>
+                
+                if ds.Subtitle != nil && !ds.Subtitle.IsEmpty() {
+                    <p>
+                        @sdkcomponents.PlainText(ds.SubtitleRaw, "subtitle", isEditingMode)
+                    </p>
+                }
+                
+                if ds.HasCTA() {
+                    @sdkcomponents.Link(ds.CTALinkRaw, "cta", isEditingMode, "btn btn-primary")
+                }
+            </div>
+        </section>
+    }
+}
+```
+
+## Handler Pattern
+
+```go
+func PageHandler(layoutService *layoutservice.LayoutService) echo.HandlerFunc {
+    return func(c echo.Context) error {
+        path := c.Param("*")
+        
+        page, err := layoutService.GetPage(c.Request().Context(), path)
+        if err != nil {
+            return err
+        }
+        
+        isEditing := c.QueryParam("sc_mode") == "edit"
+        c.Set("isEditingMode", isEditing)
+        
+        return components.Layout(page).Render(c.Request().Context(), c.Response())
+    }
+}
+```
+
+## Key Takeaways
+
+1. **Always use SDK field renderers** - Essential for Experience Editor
+2. **Extract to strongly-typed structs** - Simplifies code dramatically
+3. **Store typed + raw data** - Validation and rendering
+4. **Handle all errors** - Never ignore or panic
+5. **Follow Go conventions** - gofmt, golangci-lint, godoc
+6. **Write tests** - Unit test extraction functions
+7. **Document code** - Godoc for all exported APIs
+
+## Quick Reference
+
+**SDK Components**:
+- `@sdkcomponents.PlainText(raw, name, edit)`
+- `@sdkcomponents.RichText(raw, name, edit, class)`
+- `@sdkcomponents.Link(raw, name, edit, class)`
+- `@sdkcomponents.Image(raw, name, edit, class, w, h)`
+
+**Field Types**:
+- `*sdkmodels.TextField`
+- `*sdkmodels.RichTextField`
+- `*sdkmodels.LinkField`
+- `*sdkmodels.ImageField`
+
+**Extraction**:
+```go
+result.Title = sdkmodels.ExtractTextFieldFromMap(titleField)
+result.TitleRaw = titleField
+```
+
+**Template**:
+```templ
+if ds.Title != nil && !ds.Title.IsEmpty() {
+    @sdkcomponents.PlainText(ds.TitleRaw, "title", isEditingMode)
+}
+```
+
+Remember: The three rules (SDK components, typed structs, typed+raw data) are not optional. They are fundamental to how this SDK integrates with Sitecore XM Cloud.
+

@@ -27,7 +27,6 @@ templ UnknownComponent(componentName string, data interface{}) {
 // RenderPlaceholder renders a placeholder with its components
 // This is a utility for rendering Sitecore placeholders with their nested components
 templ RenderPlaceholder(name string, components []templ.Component) {
-	<div class={ "placeholder-" + name } data-placeholder={ name }>
 	@templ.Raw(fmt.Sprintf("<!-- Placeholder: %s -->", name))
 	@templ.Raw(fmt.Sprintf("<!-- Components: %d -->", len(components)))
 	@templ.Raw("<!-- Start Components -->")
@@ -35,7 +34,6 @@ templ RenderPlaceholder(name string, components []templ.Component) {
 			@component
 		}
 	@templ.Raw("<!-- End Components -->")
-	</div>
 }
 
 // RenderComponentWithMetadata renders a component with HTML comments for debugging

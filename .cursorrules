@@ -1,0 +1,345 @@
+# Cursor Rules for Sitecore Content SDK Go
+
+## Project Overview
+
+This is the **Sitecore Content SDK for Go** - the core SDK package for building server-rendered web applications with Sitecore XM Cloud. This repository provides field renderers, API clients, models, handlers, and middleware.
+
+## Tech Stack
+
+- **Language**: Go 1.21+
+- **Template Engine**: Templ (https://templ.guide)
+- **Testing**: Go testing package
+- **Build**: `go build`, `templ generate` for templates
+- **Linting**: golangci-lint
+
+## Repository Structure
+
+```
+content-sdk-go/
+├── models/                      # Field types and data models
+│   ├── fields.go               # Field type definitions
+│   ├── field_extractors.go    # Field extraction from raw JSON
+│   └── field_helpers.go        # Helper functions
+├── components/                  # Templ renderer components
+│   ├── fields.templ            # Field renderers
+│   ├── editing.templ           # Experience Editor chrome
+│   └── shared.templ            # Shared utilities
+├── client/                      # Sitecore API clients
+├── layoutService/               # Layout Service integration
+├── handlers/                    # HTTP handlers
+├── middleware/                  # HTTP middleware
+├── graphql/                     # GraphQL client
+└── config/                      # Configuration
+```
+
+## Critical Rules
+
+### Field Rendering
+
+**ALWAYS use SDK component renderers for Sitecore fields**
+
+```go
+// ✅ CORRECT - Uses SDK component with editing support
+@sdkcomponents.PlainText(ds.TitleRaw, "title", isEditingMode)
+@sdkcomponents.Link(item.LinkRaw, "link", isEditingMode, "css-classes")
+@sdkcomponents.RichText(field, "content", isEditingMode, "")
+@sdkcomponents.Image(field, "image", isEditingMode, "", "", "")
+
+// ❌ WRONG - Manual rendering breaks page editing
+{ ds.Title.Value }
+<a href={link.GetHref()}>{ link.GetText() }</a>
+```
+
+**Why**: SDK components handle Experience Editor chrome markers and editing metadata automatically.
+
+### Strongly Typed Data Patterns
+
+**ALWAYS extract datasource data into strongly-typed structs**
+
+```go
+// ✅ CORRECT - Strongly typed with raw data preserved
+type LinkListDatasource struct {
+    Title    *TextField
+    TitleRaw interface{}         // For SDK component rendering
+    Items    []*LinkListItem
+}
+
+type LinkListItem struct {
+    Link    *LinkField
+    LinkRaw interface{}           // For SDK component rendering
+}
+
+// Extract once, use throughout component
+if ds := ExtractLinkListDatasource(datasource); ds.HasItems() {
+    @PlainText(ds.TitleRaw, "title", isEditingMode)
+    for _, item := range ds.Items {
+        @Link(item.LinkRaw, "link", isEditingMode, "")
+    }
+}
+```
+
+### Hybrid Approach Benefits
+
+Store BOTH strongly-typed fields AND raw field data:
+- **Typed fields**: For validation, checks, and business logic
+- **Raw fields**: For passing to SDK component renderers
+
+```go
+type ComponentDatasource struct {
+    // Strongly-typed for logic
+    Title *TextField
+    Image *ImageField
+    Link  *LinkField
+    
+    // Raw data for SDK rendering
+    TitleRaw interface{}
+    ImageRaw interface{}
+    LinkRaw  interface{}
+}
+```
+
+## Go Best Practices
+
+### Naming Conventions
+
+**Packages**: lowercase, single words matching directory names
+
+**Types**: PascalCase for exported types
+
+**Functions**: 
+- PascalCase for exported
+- camelCase for unexported
+- Prefix boolean functions with `Is`, `Has`, `Can`, `Should`
+
+**Variables**: camelCase, short names in small scopes
+
+**Constants**: PascalCase for exported, camelCase for unexported
+
+### Code Organization
+
+```go
+// Import grouping
+import (
+    // 1. Standard library
+    "context"
+    "fmt"
+    
+    // 2. External dependencies
+    "github.com/labstack/echo/v4"
+    
+    // 3. Internal SDK imports
+    "github.com/content-sdk-go/models"
+    "github.com/content-sdk-go/components"
+)
+```
+
+### Error Handling
+
+```go
+// ✅ CORRECT - Handle errors immediately
+func GetPage(path string) (*Page, error) {
+    data, err := fetchLayoutData(path)
+    if err != nil {
+        return nil, fmt.Errorf("fetch layout data: %w", err)
+    }
+    
+    return parsePage(data)
+}
+
+// ❌ WRONG - Ignoring errors
+data, _ := fetchLayoutData(path)
+```
+
+## Templ Template Best Practices
+
+### Component Structure
+
+```templ
+// Component with clear parameters
+templ Link(fieldData interface{}, fieldName string, isEditingMode bool, cssClass string, children ...templ.Component) {
+    if field := ExtractLinkFieldFromMap(fieldData); !field.IsEmpty() {
+        if isEditingMode {
+            @ChromeFieldOpen(fieldName, "link")
+            <a 
+                href={ templ.SafeURL(field.GetHref()) }
+                class={ field.GetClass(), cssClass }
+            >
+                if len(children) > 0 {
+                    for _, child := range children {
+                        @child
+                    }
+                } else {
+                    { field.GetText() }
+                }
+            </a>
+            @ChromeFieldClose()
+        } else {
+            <a href={ templ.SafeURL(field.GetHref()) } class={ field.GetClass(), cssClass }>
+                if len(children) > 0 {
+                    for _, child := range children {
+                        @child
+                    }
+                } else {
+                    { field.GetText() }
+                }
+            </a>
+        }
+    }
+}
+```
+
+### Template Syntax
+
+- Use `@` prefix for templ function calls
+- Use `@templ.Raw()` for HTML strings
+- Use `templ.SafeURL()` for href attributes
+- Use `{ }` for Go expressions
+- Use `if`, `for`, `switch` directly (no `@` prefix)
+
+## Field Types
+
+### Available Field Types
+
+```go
+// TextField - Single/Multi-line text
+type TextField struct {
+    Value    string
+    Editable string
+}
+
+// RichTextField - Rich text HTML
+type RichTextField struct {
+    Value    string
+    Editable string
+}
+
+// LinkField - General Link
+type LinkField struct {
+    Href     string
+    Text     string
+    Target   string
+    Title    string
+    Class    string
+    Editable string
+    Value    *LinkFieldValue
+}
+
+// ImageField - Image field
+type ImageField struct {
+    Src      string
+    Alt      string
+    Width    string
+    Height   string
+    Editable string
+    Value    *ImageFieldValue
+}
+
+// All implement Field interface
+type Field interface {
+    GetValue() interface{}
+    GetEditable() string
+    IsEmpty() bool
+}
+```
+
+### Field Extraction
+
+```go
+// Extract typed field from raw data
+func ExtractTextFieldFromMap(fieldData interface{}) *TextField {
+    if fieldData == nil {
+        return &TextField{}
+    }
+    
+    fieldMap, ok := fieldData.(map[string]interface{})
+    if !ok {
+        return &TextField{}
+    }
+    
+    field := &TextField{}
+    
+    // Try jsonValue.value pattern
+    if jsonValue, ok := fieldMap["jsonValue"].(map[string]interface{}); ok {
+        if value, ok := jsonValue["value"].(string); ok {
+            field.Value = value
+        }
+    }
+    
+    // Extract editable metadata
+    if editable, ok := fieldMap["editable"].(string); ok {
+        field.Editable = editable
+    }
+    
+    return field
+}
+```
+
+## Testing
+
+```go
+func TestExtractTextField(t *testing.T) {
+    tests := []struct {
+        name  string
+        input interface{}
+        want  *TextField
+    }{
+        {
+            name: "valid field",
+            input: map[string]interface{}{
+                "jsonValue": map[string]interface{}{
+                    "value": "Test",
+                },
+            },
+            want: &TextField{Value: "Test"},
+        },
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got := ExtractTextFieldFromMap(tt.input)
+            if got.Value != tt.want.Value {
+                t.Errorf("got %v, want %v", got.Value, tt.want.Value)
+            }
+        })
+    }
+}
+```
+
+## Documentation
+
+- Add godoc comments to all exported types and functions
+- Use complete sentences starting with the type/function name
+- Include examples for complex functionality
+
+```go
+// TextField represents a simple text field value.
+// It implements the Field interface and is used for Single-Line and Multi-Line text fields.
+type TextField struct {
+    Value    string
+    Editable string
+}
+
+// ExtractTextFieldFromMap extracts a TextField from generic field data.
+// Handles both jsonValue.value and direct value patterns.
+func ExtractTextFieldFromMap(fieldData interface{}) *TextField {
+    // ... implementation
+}
+```
+
+## Anti-Patterns to Avoid
+
+❌ **Don't**: Manually render field values in templates
+✅ **Do**: Use SDK component renderers
+
+❌ **Don't**: Use deeply nested type assertions
+✅ **Do**: Extract to strongly-typed structs once
+
+❌ **Don't**: Ignore errors
+✅ **Do**: Handle every error appropriately
+
+❌ **Don't**: Use `panic` in production code
+✅ **Do**: Return errors to callers
+
+❌ **Don't**: Mix business logic in templates
+✅ **Do**: Keep templates simple, logic in Go code
+
