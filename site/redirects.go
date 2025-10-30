@@ -106,26 +106,26 @@ func (s *redirectsServiceImpl) getRedirectsQuery(siteName string) string {
 }
 
 // parseRedirectsResponse parses the redirects response
-func (s *redirectsServiceImpl) parseRedirectsResponse(data map[string]interface{}) ([]models.RedirectInfo, error) {
+func (s *redirectsServiceImpl) parseRedirectsResponse(data map[string]any) ([]models.RedirectInfo, error) {
 	redirects := []models.RedirectInfo{}
 
-	site, ok := data["site"].(map[string]interface{})
+	site, ok := data["site"].(map[string]any)
 	if !ok {
 		return redirects, nil
 	}
 
-	siteInfo, ok := site["siteInfo"].(map[string]interface{})
+	siteInfo, ok := site["siteInfo"].(map[string]any)
 	if !ok {
 		return redirects, nil
 	}
 
-	redirectsList, ok := siteInfo["redirects"].([]interface{})
+	redirectsList, ok := siteInfo["redirects"].([]any)
 	if !ok {
 		return redirects, nil
 	}
 
 	for _, item := range redirectsList {
-		itemMap, ok := item.(map[string]interface{})
+		itemMap, ok := item.(map[string]any)
 		if !ok {
 			continue
 		}

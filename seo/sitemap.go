@@ -119,28 +119,28 @@ func (s *sitemapXmlServiceImpl) getSitemapQuery(siteName, language string) strin
 
 // parseSitemapResponse parses the sitemap response
 func (s *sitemapXmlServiceImpl) parseSitemapResponse(
-	data map[string]interface{},
+	data map[string]any,
 	siteName, language string,
 ) ([]models.SitemapEntry, error) {
 	entries := []models.SitemapEntry{}
 
-	site, ok := data["site"].(map[string]interface{})
+	site, ok := data["site"].(map[string]any)
 	if !ok {
 		return entries, nil
 	}
 
-	siteInfo, ok := site["siteInfo"].(map[string]interface{})
+	siteInfo, ok := site["siteInfo"].(map[string]any)
 	if !ok {
 		return entries, nil
 	}
 
-	routes, ok := siteInfo["routes"].([]interface{})
+	routes, ok := siteInfo["routes"].([]any)
 	if !ok {
 		return entries, nil
 	}
 
 	for _, item := range routes {
-		itemMap, ok := item.(map[string]interface{})
+		itemMap, ok := item.(map[string]any)
 		if !ok {
 			continue
 		}

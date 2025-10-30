@@ -9,14 +9,14 @@ import (
 // EchoContext wraps an Echo context to implement our Context interface
 type EchoContext struct {
 	echo.Context
-	values map[string]interface{}
+	values map[string]any
 }
 
 // NewEchoContext creates a new Echo context wrapper
 func NewEchoContext(c echo.Context) *EchoContext {
 	return &EchoContext{
 		Context: c,
-		values:  make(map[string]interface{}),
+		values:  make(map[string]any),
 	}
 }
 
@@ -41,7 +41,7 @@ func (c *EchoContext) SetPath(path string) {
 }
 
 // Get retrieves a value from the context
-func (c *EchoContext) Get(key string) interface{} {
+func (c *EchoContext) Get(key string) any {
 	// Try our local values first
 	if val, exists := c.values[key]; exists {
 		return val
@@ -51,7 +51,7 @@ func (c *EchoContext) Get(key string) interface{} {
 }
 
 // Set stores a value in the context
-func (c *EchoContext) Set(key string, val interface{}) {
+func (c *EchoContext) Set(key string, val any) {
 	c.values[key] = val
 	// Also set in Echo's context for compatibility
 	c.Context.Set(key, val)
@@ -88,7 +88,7 @@ func (c *EchoContext) String(code int, s string) error {
 }
 
 // JSON sends a JSON response
-func (c *EchoContext) JSON(code int, i interface{}) error {
+func (c *EchoContext) JSON(code int, i any) error {
 	return c.Context.JSON(code, i)
 }
 

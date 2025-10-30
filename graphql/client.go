@@ -17,7 +17,7 @@ import (
 
 // Client is the interface for GraphQL operations
 type Client interface {
-	Request(ctx context.Context, query string, variables map[string]interface{}) (map[string]interface{}, error)
+	Request(ctx context.Context, query string, variables map[string]any) (map[string]any, error)
 }
 
 // ClientImpl is the default implementation of the GraphQL client
@@ -87,8 +87,8 @@ func NewClient(endpoint, apiKey string, httpClient *http.Client, config *ClientC
 func (c *ClientImpl) Request(
 	ctx context.Context,
 	query string,
-	variables map[string]interface{},
-) (map[string]interface{}, error) {
+	variables map[string]any,
+) (map[string]any, error) {
 	var lastErr error
 
 	debug.Common("Requesting GraphQL query: %s", query)
@@ -144,10 +144,10 @@ func (c *ClientImpl) Request(
 func (c *ClientImpl) doRequest(
 	ctx context.Context,
 	query string,
-	variables map[string]interface{},
-) (map[string]interface{}, error) {
+	variables map[string]any,
+) (map[string]any, error) {
 	// Prepare request body
-	requestBody := map[string]interface{}{
+	requestBody := map[string]any{
 		"query":     query,
 		"variables": variables,
 	}
@@ -201,8 +201,8 @@ func (c *ClientImpl) doRequest(
 
 	// Parse response
 	var result struct {
-		Data   map[string]interface{} `json:"data"`
-		Errors []models.GraphQLError  `json:"errors,omitempty"`
+		Data   map[string]any        `json:"data"`
+		Errors []models.GraphQLError `json:"errors,omitempty"`
 	}
 
 	if err := json.Unmarshal(body, &result); err != nil {

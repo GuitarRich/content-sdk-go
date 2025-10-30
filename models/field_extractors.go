@@ -6,12 +6,12 @@ import (
 
 // ExtractTextFieldFromMap extracts a TextField from generic field data
 // Handles both jsonValue.value and direct value patterns
-func ExtractTextFieldFromMap(fieldData interface{}) *TextField {
+func ExtractTextFieldFromMap(fieldData any) *TextField {
 	if fieldData == nil {
 		return &TextField{}
 	}
 
-	fieldMap, ok := fieldData.(map[string]interface{})
+	fieldMap, ok := fieldData.(map[string]any)
 	if !ok {
 		// If it's a string, use it directly
 		if str, ok := fieldData.(string); ok {
@@ -23,7 +23,7 @@ func ExtractTextFieldFromMap(fieldData interface{}) *TextField {
 	field := &TextField{}
 
 	// Try jsonValue.value pattern (standard Sitecore format)
-	if jsonValue, ok := fieldMap["jsonValue"].(map[string]interface{}); ok {
+	if jsonValue, ok := fieldMap["jsonValue"].(map[string]any); ok {
 		if value, ok := jsonValue["value"].(string); ok {
 			field.Value = value
 		}
@@ -42,12 +42,12 @@ func ExtractTextFieldFromMap(fieldData interface{}) *TextField {
 
 // ExtractRichTextFieldFromMap extracts a RichTextField from generic field data
 // Handles both jsonValue.value and direct value patterns
-func ExtractRichTextFieldFromMap(fieldData interface{}) *RichTextField {
+func ExtractRichTextFieldFromMap(fieldData any) *RichTextField {
 	if fieldData == nil {
 		return &RichTextField{}
 	}
 
-	fieldMap, ok := fieldData.(map[string]interface{})
+	fieldMap, ok := fieldData.(map[string]any)
 	if !ok {
 		// If it's a string, use it directly
 		if str, ok := fieldData.(string); ok {
@@ -59,7 +59,7 @@ func ExtractRichTextFieldFromMap(fieldData interface{}) *RichTextField {
 	field := &RichTextField{}
 
 	// Try jsonValue.value pattern (standard Sitecore format)
-	if jsonValue, ok := fieldMap["jsonValue"].(map[string]interface{}); ok {
+	if jsonValue, ok := fieldMap["jsonValue"].(map[string]any); ok {
 		if value, ok := jsonValue["value"].(string); ok {
 			field.Value = value
 		}
@@ -78,14 +78,14 @@ func ExtractRichTextFieldFromMap(fieldData interface{}) *RichTextField {
 
 // ExtractImageFieldFromMap extracts an ImageField from generic field data
 // Handles both jsonValue.value and direct property patterns
-func ExtractImageFieldFromMap(fieldData interface{}) *ImageField {
+func ExtractImageFieldFromMap(fieldData any) *ImageField {
 	debug.Common("ExtractImageFieldFromMap fieldData: %+v", fieldData)
 	if fieldData == nil {
 		debug.Common("ExtractImageFieldFromMap fieldData is nil")
 		return &ImageField{}
 	}
 
-	fieldMap, ok := fieldData.(map[string]interface{})
+	fieldMap, ok := fieldData.(map[string]any)
 	if !ok {
 		debug.Common("ExtractImageFieldFromMap fieldMap is not a map, fieldData type: %T", fieldData)
 		return &ImageField{}
@@ -93,7 +93,7 @@ func ExtractImageFieldFromMap(fieldData interface{}) *ImageField {
 
 	field := &ImageField{}
 
-	fieldValues, ok := fieldMap["value"].(map[string]interface{})
+	fieldValues, ok := fieldMap["value"].(map[string]any)
 	if !ok {
 		debug.Common("ExtractImageFieldFromMap fieldValues[\"value\"] is not a map, fieldData type: %T", fieldData)
 		fieldValues = nil
@@ -101,7 +101,7 @@ func ExtractImageFieldFromMap(fieldData interface{}) *ImageField {
 
 	useJsonValue := false
 	if fieldValues == nil {
-		fieldValues, ok = fieldMap["jsonValue"].(map[string]interface{})
+		fieldValues, ok = fieldMap["jsonValue"].(map[string]any)
 		if !ok {
 			debug.Common("ExtractImageFieldFromMap fieldValues[\"jsonValue\"] is not a map, fieldData type: %T", fieldData)
 			return &ImageField{}
@@ -110,11 +110,11 @@ func ExtractImageFieldFromMap(fieldData interface{}) *ImageField {
 	}
 
 	// Try jsonValue.value pattern (standard Sitecore format)
-	if jsonValue, ok := fieldValues["jsonValue"].(map[string]interface{}); ok || useJsonValue {
+	if jsonValue, ok := fieldValues["jsonValue"].(map[string]any); ok || useJsonValue {
 		if useJsonValue {
 			jsonValue = fieldValues
 		}
-		if value, ok := jsonValue["value"].(map[string]interface{}); ok {
+		if value, ok := jsonValue["value"].(map[string]any); ok {
 			// Extract nested value structure
 			field.Value = &ImageFieldValue{}
 			if src, ok := value["src"].(string); ok {
@@ -160,17 +160,17 @@ func ExtractImageFieldFromMap(fieldData interface{}) *ImageField {
 
 // ExtractLinkFieldFromMap extracts a LinkField from generic field data
 // Handles both jsonValue.value and direct property patterns
-func ExtractLinkFieldFromMap(fieldData interface{}) *LinkField {
+func ExtractLinkFieldFromMap(fieldData any) *LinkField {
 	if fieldData == nil {
 		return &LinkField{}
 	}
 
-	fieldMap, ok := fieldData.(map[string]interface{})
+	fieldMap, ok := fieldData.(map[string]any)
 	if !ok {
 		return &LinkField{}
 	}
 
-	fieldValues, ok := fieldMap["value"].(map[string]interface{})
+	fieldValues, ok := fieldMap["value"].(map[string]any)
 	if !ok {
 		return &LinkField{}
 	}
@@ -178,8 +178,8 @@ func ExtractLinkFieldFromMap(fieldData interface{}) *LinkField {
 	field := &LinkField{}
 
 	// Try jsonValue.value pattern (standard Sitecore format)
-	if jsonValue, ok := fieldValues["jsonValue"].(map[string]interface{}); ok {
-		if value, ok := jsonValue["value"].(map[string]interface{}); ok {
+	if jsonValue, ok := fieldValues["jsonValue"].(map[string]any); ok {
+		if value, ok := jsonValue["value"].(map[string]any); ok {
 			// Extract nested value structure
 			field.Value = &LinkFieldValue{}
 			if href, ok := value["href"].(string); ok {

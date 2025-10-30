@@ -31,8 +31,8 @@ func (e *PreviewError) Error() string {
 // GraphQLError represents an error from a GraphQL request
 type GraphQLError struct {
 	Message    string
-	Path       []interface{}
-	Extensions map[string]interface{}
+	Path       []any
+	Extensions map[string]any
 }
 
 func (e *GraphQLError) Error() string {

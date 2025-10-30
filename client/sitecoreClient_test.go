@@ -9,7 +9,7 @@ import (
 func TestParsePath_String(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    interface{}
+		input    any
 		expected string
 	}{
 		{

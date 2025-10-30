@@ -17,7 +17,7 @@ func SetEchoLogger(l echo.Logger) {
 	echoLogger = l
 }
 
-func debug(debugModule string, format string, a ...interface{}) {
+func debug(debugModule string, format string, a ...any) {
 	debug := os.Getenv("DEBUG")
 	if debug == "true" || strings.Contains(debug, debugModule) {
 		if echoLogger != nil {
@@ -28,54 +28,54 @@ func debug(debugModule string, format string, a ...interface{}) {
 	}
 }
 
-func Common(format string, a ...interface{}) {
+func Common(format string, a ...any) {
 	debug(rootNamespace+"/common", format, a...)
 }
 
-func Form(format string, a ...interface{}) {
+func Form(format string, a ...any) {
 	debug(rootNamespace+"/form", format, a...)
 }
 
-func Http(format string, a ...interface{}) {
+func Http(format string, a ...any) {
 	debug(rootNamespace+"/http", format, a...)
 }
 
-func Layout(format string, a ...interface{}) {
+func Layout(format string, a ...any) {
 	debug(rootNamespace+"/layout", format, a...)
 }
 
-func Dictionary(format string, a ...interface{}) {
+func Dictionary(format string, a ...any) {
 	debug(rootNamespace+"/dictionary", format, a...)
 }
 
-func Editing(format string, a ...interface{}) {
+func Editing(format string, a ...any) {
 	debug(rootNamespace+"/editing", format, a...)
 }
 
-func Sitemap(format string, a ...interface{}) {
+func Sitemap(format string, a ...any) {
 	debug(rootNamespace+"/sitemap", format, a...)
 }
 
-func Multisite(format string, a ...interface{}) {
+func Multisite(format string, a ...any) {
 	debug(rootNamespace+"/multisite", format, a...)
 }
 
-func Robots(format string, a ...interface{}) {
+func Robots(format string, a ...any) {
 	debug(rootNamespace+"/robots", format, a...)
 }
 
-func Redirects(format string, a ...interface{}) {
+func Redirects(format string, a ...any) {
 	debug(rootNamespace+"/redirects", format, a...)
 }
 
-func Locale(format string, a ...interface{}) {
+func Locale(format string, a ...any) {
 	debug(rootNamespace+"/locale", format, a...)
 }
 
-func ErrorPages(format string, a ...interface{}) {
+func ErrorPages(format string, a ...any) {
 	debug(rootNamespace+"/metadata", format, a...)
 }
 
-func Proxy(format string, a ...interface{}) {
+func Proxy(format string, a ...any) {
 	debug(rootNamespace+"/proxy", format, a...)
 }

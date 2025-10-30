@@ -19,10 +19,10 @@ type Context interface {
 	SetPath(path string)
 
 	// Get retrieves a value from the context
-	Get(key string) interface{}
+	Get(key string) any
 
 	// Set stores a value in the context
-	Set(key string, val interface{})
+	Set(key string, val any)
 
 	// Cookie retrieves a cookie by name
 	Cookie(name string) (*http.Cookie, error)
@@ -43,7 +43,7 @@ type Context interface {
 	String(code int, s string) error
 
 	// JSON sends a JSON response
-	JSON(code int, i interface{}) error
+	JSON(code int, i any) error
 
 	// NoContent sends a no content response
 	NoContent(code int) error

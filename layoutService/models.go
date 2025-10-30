@@ -30,33 +30,33 @@ const (
 )
 
 // GenericFieldValue represents a field value which can be various types
-type GenericFieldValue interface{}
+type GenericFieldValue any
 
 // FieldMetadata contains field metadata in editing mode
 type FieldMetadata struct {
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 // Field represents field value data on a component
 type Field struct {
-	Value    GenericFieldValue      `json:"value"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Value    GenericFieldValue `json:"value"`
+	Metadata map[string]any    `json:"metadata,omitempty"`
 }
 
 // Item represents content data returned from Layout Service
 type Item struct {
-	Name        string                 `json:"name"`
-	DisplayName *string                `json:"displayName,omitempty"`
-	ID          *string                `json:"id,omitempty"`
-	URL         *string                `json:"url,omitempty"`
-	Fields      map[string]interface{} `json:"fields"`
+	Name        string         `json:"name"`
+	DisplayName *string        `json:"displayName,omitempty"`
+	ID          *string        `json:"id,omitempty"`
+	URL         *string        `json:"url,omitempty"`
+	Fields      map[string]any `json:"fields"`
 }
 
 // ComponentParams represents component parameters
 type ComponentParams map[string]string
 
 // ComponentFields represents content field data passed to a component
-type ComponentFields map[string]interface{}
+type ComponentFields map[string]any
 
 // PlaceholdersData represents placeholder contents data
 type PlaceholdersData map[string][]ComponentRendering
@@ -81,11 +81,11 @@ type LayoutServiceContext struct {
 	Site                           *struct {
 		Name *string `json:"name,omitempty"`
 	} `json:"site,omitempty"`
-	RenderingType *RenderingType                    `json:"renderingType,omitempty"`
-	ClientScripts []string                          `json:"clientScripts,omitempty"`
-	ClientData    map[string]map[string]interface{} `json:"clientData,omitempty"`
+	RenderingType *RenderingType            `json:"renderingType,omitempty"`
+	ClientScripts []string                  `json:"clientScripts,omitempty"`
+	ClientData    map[string]map[string]any `json:"clientData,omitempty"`
 	// Additional dynamic properties
-	AdditionalProperties map[string]interface{} `json:"-"`
+	AdditionalProperties map[string]any `json:"-"`
 }
 
 // LayoutServiceContextData contains context information from the Sitecore Layout Service
@@ -95,18 +95,18 @@ type LayoutServiceContextData struct {
 
 // RouteData represents the shape of route data returned from Sitecore Layout Service
 type RouteData struct {
-	Name         string                 `json:"name"`
-	DisplayName  *string                `json:"displayName,omitempty"`
-	Fields       map[string]interface{} `json:"fields,omitempty"`
-	DatabaseName *string                `json:"databaseName,omitempty"`
-	DeviceID     *string                `json:"deviceId,omitempty"`
-	ItemLanguage *string                `json:"itemLanguage,omitempty"`
-	ItemVersion  *int                   `json:"itemVersion,omitempty"`
-	LayoutID     *string                `json:"layoutId,omitempty"`
-	TemplateID   *string                `json:"templateId,omitempty"`
-	TemplateName *string                `json:"templateName,omitempty"`
-	Placeholders PlaceholdersData       `json:"placeholders"`
-	ItemID       *string                `json:"itemId,omitempty"`
+	Name         string           `json:"name"`
+	DisplayName  *string          `json:"displayName,omitempty"`
+	Fields       map[string]any   `json:"fields,omitempty"`
+	DatabaseName *string          `json:"databaseName,omitempty"`
+	DeviceID     *string          `json:"deviceId,omitempty"`
+	ItemLanguage *string          `json:"itemLanguage,omitempty"`
+	ItemVersion  *int             `json:"itemVersion,omitempty"`
+	LayoutID     *string          `json:"layoutId,omitempty"`
+	TemplateID   *string          `json:"templateId,omitempty"`
+	TemplateName *string          `json:"templateName,omitempty"`
+	Placeholders PlaceholdersData `json:"placeholders"`
+	ItemID       *string          `json:"itemId,omitempty"`
 }
 
 // LayoutServiceData represents a reply from the Sitecore Layout Service

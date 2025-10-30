@@ -3,7 +3,7 @@ package models
 // Field represents a generic Sitecore field
 // All field types implement this interface
 type Field interface {
-	GetValue() interface{}
+	GetValue() any
 	GetEditable() string
 	IsEmpty() bool
 }
@@ -14,7 +14,7 @@ type TextField struct {
 	Editable string `json:"editable,omitempty"`
 }
 
-func (f *TextField) GetValue() interface{} {
+func (f *TextField) GetValue() any {
 	return f.Value
 }
 
@@ -32,7 +32,7 @@ type RichTextField struct {
 	Editable string `json:"editable,omitempty"`
 }
 
-func (f *RichTextField) GetValue() interface{} {
+func (f *RichTextField) GetValue() any {
 	return f.Value
 }
 
@@ -62,7 +62,7 @@ type ImageFieldValue struct {
 	Height string `json:"height,omitempty"`
 }
 
-func (f *ImageField) GetValue() interface{} {
+func (f *ImageField) GetValue() any {
 	return f
 }
 
@@ -138,7 +138,7 @@ type LinkFieldValue struct {
 	Class  string `json:"class,omitempty"`
 }
 
-func (f *LinkField) GetValue() interface{} {
+func (f *LinkField) GetValue() any {
 	return f
 }
 

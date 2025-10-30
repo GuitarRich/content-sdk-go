@@ -49,10 +49,10 @@ type DesignLibraryRenderPreviewData struct {
 	ComponentName string `json:"componentName"`
 
 	// ComponentProps are the props to pass to the component
-	ComponentProps map[string]interface{} `json:"componentProps,omitempty"`
+	ComponentProps map[string]any `json:"componentProps,omitempty"`
 
 	// LayoutData is optional layout data for the component
-	LayoutData map[string]interface{} `json:"layoutData,omitempty"`
+	LayoutData map[string]any `json:"layoutData,omitempty"`
 }
 
 // IsPreviewMode checks if preview data indicates preview mode

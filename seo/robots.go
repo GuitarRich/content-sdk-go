@@ -128,18 +128,18 @@ func (s *robotsServiceImpl) getRobotsQuery(siteName string) string {
 }
 
 // parseRobotsResponse parses the robots response
-func (s *robotsServiceImpl) parseRobotsResponse(data map[string]interface{}) (*models.RobotsDirective, error) {
-	site, ok := data["site"].(map[string]interface{})
+func (s *robotsServiceImpl) parseRobotsResponse(data map[string]any) (*models.RobotsDirective, error) {
+	site, ok := data["site"].(map[string]any)
 	if !ok {
 		return &models.RobotsDirective{}, nil
 	}
 
-	siteInfo, ok := site["siteInfo"].(map[string]interface{})
+	siteInfo, ok := site["siteInfo"].(map[string]any)
 	if !ok {
 		return &models.RobotsDirective{}, nil
 	}
 
-	robots, ok := siteInfo["robots"].(map[string]interface{})
+	robots, ok := siteInfo["robots"].(map[string]any)
 	if !ok {
 		return &models.RobotsDirective{}, nil
 	}
@@ -154,7 +154,7 @@ func (s *robotsServiceImpl) parseRobotsResponse(data map[string]interface{}) (*m
 		directive.UserAgent = userAgent
 	}
 
-	if allow, ok := robots["allow"].([]interface{}); ok {
+	if allow, ok := robots["allow"].([]any); ok {
 		directive.Allow = make([]string, 0, len(allow))
 		for _, item := range allow {
 			if str, ok := item.(string); ok {
@@ -163,7 +163,7 @@ func (s *robotsServiceImpl) parseRobotsResponse(data map[string]interface{}) (*m
 		}
 	}
 
-	if disallow, ok := robots["disallow"].([]interface{}); ok {
+	if disallow, ok := robots["disallow"].([]any); ok {
 		directive.Disallow = make([]string, 0, len(disallow))
 		for _, item := range disallow {
 			if str, ok := item.(string); ok {
@@ -172,7 +172,7 @@ func (s *robotsServiceImpl) parseRobotsResponse(data map[string]interface{}) (*m
 		}
 	}
 
-	if sitemap, ok := robots["sitemap"].([]interface{}); ok {
+	if sitemap, ok := robots["sitemap"].([]any); ok {
 		directive.Sitemap = make([]string, 0, len(sitemap))
 		for _, item := range sitemap {
 			if str, ok := item.(string); ok {

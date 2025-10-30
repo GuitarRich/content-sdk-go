@@ -25,10 +25,10 @@ func TestClient_Request_Success(t *testing.T) {
 		}
 
 		// Return mock response
-		response := map[string]interface{}{
-			"data": map[string]interface{}{
-				"layout": map[string]interface{}{
-					"item": map[string]interface{}{
+		response := map[string]any{
+			"data": map[string]any{
+				"layout": map[string]any{
+					"item": map[string]any{
 						"name": "Home",
 					},
 				},
@@ -53,8 +53,8 @@ func TestClient_Request_Success(t *testing.T) {
 	}
 
 	// Verify result
-	layout := result["layout"].(map[string]interface{})
-	item := layout["item"].(map[string]interface{})
+	layout := result["layout"].(map[string]any)
+	item := layout["item"].(map[string]any)
 	if item["name"] != "Home" {
 		t.Errorf("expected name=Home, got %v", item["name"])
 	}
@@ -63,12 +63,12 @@ func TestClient_Request_Success(t *testing.T) {
 func TestClient_Request_GraphQLError(t *testing.T) {
 	// Mock server that returns GraphQL error
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response := map[string]interface{}{
+		response := map[string]any{
 			"data": nil,
-			"errors": []map[string]interface{}{
+			"errors": []map[string]any{
 				{
 					"message": "Field 'nonexistent' not found",
-					"path":    []interface{}{"layout", "nonexistent"},
+					"path":    []any{"layout", "nonexistent"},
 				},
 			},
 		}
@@ -125,8 +125,8 @@ func TestClient_Request_Retry(t *testing.T) {
 			return
 		}
 
-		response := map[string]interface{}{
-			"data": map[string]interface{}{
+		response := map[string]any{
+			"data": map[string]any{
 				"success": true,
 			},
 		}
@@ -162,8 +162,8 @@ func TestClient_Request_ContextTimeout(t *testing.T) {
 	// Mock server with slow response
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(200 * time.Millisecond)
-		response := map[string]interface{}{
-			"data": map[string]interface{}{},
+		response := map[string]any{
+			"data": map[string]any{},
 		}
 		json.NewEncoder(w).Encode(response)
 	}))

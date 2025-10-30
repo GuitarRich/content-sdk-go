@@ -134,7 +134,7 @@ func (c *SitecoreClient) GetSiteNameFromPath(path string) string {
 }
 
 // ParsePath normalizes a path (string or []string)
-func (c *SitecoreClient) ParsePath(path interface{}) string {
+func (c *SitecoreClient) ParsePath(path any) string {
 	normalized := parsePath(path)
 
 	// Remove site rewrite prefix
@@ -148,7 +148,7 @@ func (c *SitecoreClient) ParsePath(path interface{}) string {
 
 // parsePath normalizes path regardless of type
 // Accepts either string or []string and returns a normalized string path
-func parsePath(path interface{}) string {
+func parsePath(path any) string {
 	switch p := path.(type) {
 	case string:
 		// If string starts with '/', return as-is, otherwise prepend '/'
@@ -193,8 +193,8 @@ func GetSiteRewriteData(path string, defaultSite string) models.SiteRewriteData 
 	if strings.Contains(path, SITE_PREFIX) {
 		parts := strings.Split(path, "/")
 		for i, part := range parts {
-			if strings.HasPrefix(part, SITE_PREFIX) {
-				siteName := strings.TrimPrefix(part, SITE_PREFIX)
+			if after, ok := strings.CutPrefix(part, SITE_PREFIX); ok {
+				siteName := after
 				// Remove the site part from path
 				remainingParts := append(parts[:i], parts[i+1:]...)
 				normalizedPath := "/" + strings.Join(remainingParts, "/")
@@ -254,8 +254,8 @@ func GetPersonalizedRewriteData(path string) models.PersonalizeRewriteData {
 
 	parts := strings.Split(path, "/")
 	for i, part := range parts {
-		if strings.HasPrefix(part, PERSONALIZE_PREFIX) {
-			variantId := strings.TrimPrefix(part, PERSONALIZE_PREFIX)
+		if after, ok := strings.CutPrefix(part, PERSONALIZE_PREFIX); ok {
+			variantId := after
 			// Remove the variant part from path
 			remainingParts := append(parts[:i], parts[i+1:]...)
 			normalizedPath := "/" + strings.Join(remainingParts, "/")

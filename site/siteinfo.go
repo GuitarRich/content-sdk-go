@@ -106,13 +106,13 @@ func (s *siteInfoServiceImpl) getAllSitesQuery() string {
 }
 
 // parseSiteInfoResponse parses a single site info response
-func (s *siteInfoServiceImpl) parseSiteInfoResponse(data map[string]interface{}, siteName string) (*models.SiteInfo, error) {
-	site, ok := data["site"].(map[string]interface{})
+func (s *siteInfoServiceImpl) parseSiteInfoResponse(data map[string]any, siteName string) (*models.SiteInfo, error) {
+	site, ok := data["site"].(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("site not found in response")
 	}
 
-	siteInfo, ok := site["siteInfo"].(map[string]interface{})
+	siteInfo, ok := site["siteInfo"].(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("siteInfo not found for site %s", siteName)
 	}
@@ -121,20 +121,20 @@ func (s *siteInfoServiceImpl) parseSiteInfoResponse(data map[string]interface{},
 }
 
 // parseAllSitesResponse parses all sites response
-func (s *siteInfoServiceImpl) parseAllSitesResponse(data map[string]interface{}) ([]models.SiteInfo, error) {
-	site, ok := data["site"].(map[string]interface{})
+func (s *siteInfoServiceImpl) parseAllSitesResponse(data map[string]any) ([]models.SiteInfo, error) {
+	site, ok := data["site"].(map[string]any)
 	if !ok {
 		return []models.SiteInfo{}, nil
 	}
 
-	siteInfoCollection, ok := site["siteInfoCollection"].([]interface{})
+	siteInfoCollection, ok := site["siteInfoCollection"].([]any)
 	if !ok {
 		return []models.SiteInfo{}, nil
 	}
 
 	sites := make([]models.SiteInfo, 0, len(siteInfoCollection))
 	for _, item := range siteInfoCollection {
-		itemMap, ok := item.(map[string]interface{})
+		itemMap, ok := item.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -145,7 +145,7 @@ func (s *siteInfoServiceImpl) parseAllSitesResponse(data map[string]interface{})
 }
 
 // mapToSiteInfo converts GraphQL response to SiteInfo model
-func (s *siteInfoServiceImpl) mapToSiteInfo(data map[string]interface{}) *models.SiteInfo {
+func (s *siteInfoServiceImpl) mapToSiteInfo(data map[string]any) *models.SiteInfo {
 	siteInfo := &models.SiteInfo{}
 
 	if name, ok := data["name"].(string); ok {

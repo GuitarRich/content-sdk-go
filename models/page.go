@@ -5,7 +5,7 @@ package models
 // Cast to *layoutService.LayoutServiceData when using
 type Page struct {
 	// LayoutData contains the page structure and content from Layout Service
-	LayoutData interface{} `json:"layoutData"`
+	LayoutData any `json:"layoutData"`
 
 	// Dictionary contains i18n phrases for the page's language
 	Dictionary DictionaryPhrases `json:"dictionary,omitempty"`
@@ -33,10 +33,10 @@ type DictionaryPhrases map[string]string
 // Note: Item uses interface{} to avoid import cycles
 type ErrorPages struct {
 	// NotFoundPage is the custom 404 page
-	NotFoundPage interface{} `json:"notFoundPage,omitempty"`
+	NotFoundPage any `json:"notFoundPage,omitempty"`
 
 	// ServerErrorPage is the custom 500 page
-	ServerErrorPage interface{} `json:"serverErrorPage,omitempty"`
+	ServerErrorPage any `json:"serverErrorPage,omitempty"`
 }
 
 // HTMLLink represents an HTML link element (stylesheet, icon, etc.)

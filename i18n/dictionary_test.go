@@ -7,11 +7,11 @@ import (
 
 // Mock GraphQL client for testing
 type mockGraphQLClient struct {
-	response map[string]interface{}
+	response map[string]any
 	err      error
 }
 
-func (m *mockGraphQLClient) Request(ctx context.Context, query string, variables map[string]interface{}) (map[string]interface{}, error) {
+func (m *mockGraphQLClient) Request(ctx context.Context, query string, variables map[string]any) (map[string]any, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -19,19 +19,19 @@ func (m *mockGraphQLClient) Request(ctx context.Context, query string, variables
 }
 
 func TestDictionaryService_FetchDictionaryData_Success(t *testing.T) {
-	mockResponse := map[string]interface{}{
-		"site": map[string]interface{}{
-			"siteInfo": map[string]interface{}{
-				"dictionary": []interface{}{
-					map[string]interface{}{
+	mockResponse := map[string]any{
+		"site": map[string]any{
+			"siteInfo": map[string]any{
+				"dictionary": []any{
+					map[string]any{
 						"key":   "welcome",
 						"value": "Welcome",
 					},
-					map[string]interface{}{
+					map[string]any{
 						"key":   "goodbye",
 						"value": "Goodbye",
 					},
-					map[string]interface{}{
+					map[string]any{
 						"key":   "hello",
 						"value": "Hello",
 					},
@@ -73,10 +73,10 @@ func TestDictionaryService_FetchDictionaryData_Success(t *testing.T) {
 }
 
 func TestDictionaryService_FetchDictionaryData_EmptyResponse(t *testing.T) {
-	mockResponse := map[string]interface{}{
-		"site": map[string]interface{}{
-			"siteInfo": map[string]interface{}{
-				"dictionary": []interface{}{},
+	mockResponse := map[string]any{
+		"site": map[string]any{
+			"siteInfo": map[string]any{
+				"dictionary": []any{},
 			},
 		},
 	}
@@ -102,7 +102,7 @@ func TestDictionaryService_FetchDictionaryData_EmptyResponse(t *testing.T) {
 }
 
 func TestDictionaryService_FetchDictionaryData_NoSite(t *testing.T) {
-	mockResponse := map[string]interface{}{}
+	mockResponse := map[string]any{}
 
 	mockClient := &mockGraphQLClient{
 		response: mockResponse,

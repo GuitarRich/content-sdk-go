@@ -101,7 +101,7 @@ func (ls *LayoutService) FetchLayoutData(
 		defer cancel()
 	}
 
-	data, err := ls.graphQLClient.Request(ctx, query, map[string]interface{}{})
+	data, err := ls.graphQLClient.Request(ctx, query, map[string]any{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch layout data: %w", err)
 	}
@@ -116,20 +116,20 @@ func (ls *LayoutService) FetchLayoutData(
 }
 
 // parseLayoutResponse parses the GraphQL response into LayoutServiceData
-func (ls *LayoutService) parseLayoutResponse(data map[string]interface{}, locale *string) (*LayoutServiceData, error) {
+func (ls *LayoutService) parseLayoutResponse(data map[string]any, locale *string) (*LayoutServiceData, error) {
 	// Navigate through the response structure: data.layout.item.rendered
-	layout, ok := data["layout"].(map[string]interface{})
+	layout, ok := data["layout"].(map[string]any)
 	if !ok {
 		// If `rendered` is empty -> not found, return default structure
 		return ls.createDefaultLayoutData(locale), nil
 	}
 
-	item, ok := layout["item"].(map[string]interface{})
+	item, ok := layout["item"].(map[string]any)
 	if !ok {
 		return ls.createDefaultLayoutData(locale), nil
 	}
 
-	rendered, ok := item["rendered"].(map[string]interface{})
+	rendered, ok := item["rendered"].(map[string]any)
 	if !ok || rendered == nil {
 		return ls.createDefaultLayoutData(locale), nil
 	}

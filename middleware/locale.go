@@ -139,8 +139,8 @@ func (m *LocaleMiddleware) extractLocaleFromPath(path string) string {
 // parseAcceptLanguage parses Accept-Language header
 func (m *LocaleMiddleware) parseAcceptLanguage(header string) string {
 	// Parse Accept-Language header (e.g., "en-US,en;q=0.9,fr;q=0.8")
-	languages := strings.Split(header, ",")
-	for _, lang := range languages {
+	languages := strings.SplitSeq(header, ",")
+	for lang := range languages {
 		// Remove quality value if present
 		parts := strings.Split(lang, ";")
 		language := strings.TrimSpace(parts[0])

@@ -4,35 +4,35 @@ package models
 // These combine GetFieldByName with typed extractors
 
 // GetTextField extracts and returns a TextField from fields by name
-func GetTextField(fields interface{}, fieldName string) *TextField {
+func GetTextField(fields any, fieldName string) *TextField {
 	fieldData := GetFieldByName(fields, fieldName)
 	return ExtractTextFieldFromMap(fieldData)
 }
 
 // GetRichTextField extracts and returns a RichTextField from fields by name
-func GetRichTextField(fields interface{}, fieldName string) *RichTextField {
+func GetRichTextField(fields any, fieldName string) *RichTextField {
 	fieldData := GetFieldByName(fields, fieldName)
 	return ExtractRichTextFieldFromMap(fieldData)
 }
 
 // GetImageField extracts and returns an ImageField from fields by name
-func GetImageField(fields interface{}, fieldName string) *ImageField {
+func GetImageField(fields any, fieldName string) *ImageField {
 	fieldData := GetFieldByName(fields, fieldName)
 	return ExtractImageFieldFromMap(fieldData)
 }
 
 // GetLinkField extracts and returns a LinkField from fields by name
-func GetLinkField(fields interface{}, fieldName string) *LinkField {
+func GetLinkField(fields any, fieldName string) *LinkField {
 	fieldData := GetFieldByName(fields, fieldName)
 	return ExtractLinkFieldFromMap(fieldData)
 }
 
 // GetFieldByName extracts a field by name from the fields interface
-func GetFieldByName(fields interface{}, name string) interface{} {
+func GetFieldByName(fields any, name string) any {
 	if fields == nil {
 		return nil
 	}
-	fieldsMap, ok := fields.(map[string]interface{})
+	fieldsMap, ok := fields.(map[string]any)
 	if !ok {
 		return nil
 	}
@@ -41,7 +41,7 @@ func GetFieldByName(fields interface{}, name string) interface{} {
 
 // IsFieldEmpty checks if a field is empty
 // Works with both typed Field interface and generic field data
-func IsFieldEmpty(fieldData interface{}) bool {
+func IsFieldEmpty(fieldData any) bool {
 	if fieldData == nil {
 		return true
 	}
@@ -52,13 +52,13 @@ func IsFieldEmpty(fieldData interface{}) bool {
 	}
 
 	// Fallback checks for generic map data
-	fieldMap, ok := fieldData.(map[string]interface{})
+	fieldMap, ok := fieldData.(map[string]any)
 	if !ok {
 		return true
 	}
 
 	// Check for value in jsonValue.value pattern
-	if jsonValue, ok := fieldMap["jsonValue"].(map[string]interface{}); ok {
+	if jsonValue, ok := fieldMap["jsonValue"].(map[string]any); ok {
 		if value, ok := jsonValue["value"]; ok && value != nil && value != "" {
 			return false
 		}
@@ -74,6 +74,6 @@ func IsFieldEmpty(fieldData interface{}) bool {
 
 // FieldHasValue checks if a field has a non-empty value
 // This is the inverse of IsFieldEmpty for more readable templates
-func FieldHasValue(fieldData interface{}) bool {
+func FieldHasValue(fieldData any) bool {
 	return !IsFieldEmpty(fieldData)
 }

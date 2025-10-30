@@ -74,34 +74,34 @@ func (s *errorPagesServiceImpl) getErrorPagesQuery(siteName string) string {
 }
 
 // parseErrorPagesResponse parses the error pages response
-func (s *errorPagesServiceImpl) parseErrorPagesResponse(data map[string]interface{}) (*models.ErrorPages, error) {
+func (s *errorPagesServiceImpl) parseErrorPagesResponse(data map[string]any) (*models.ErrorPages, error) {
 	errorPages := &models.ErrorPages{}
 
-	site, ok := data["site"].(map[string]interface{})
+	site, ok := data["site"].(map[string]any)
 	if !ok {
 		return errorPages, nil
 	}
 
-	siteInfo, ok := site["siteInfo"].(map[string]interface{})
+	siteInfo, ok := site["siteInfo"].(map[string]any)
 	if !ok {
 		return errorPages, nil
 	}
 
-	errorHandling, ok := siteInfo["errorHandling"].(map[string]interface{})
+	errorHandling, ok := siteInfo["errorHandling"].(map[string]any)
 	if !ok {
 		return errorPages, nil
 	}
 
 	// Parse not found page
-	if notFoundPage, ok := errorHandling["notFoundPage"].(map[string]interface{}); ok {
-		if rendered, ok := notFoundPage["rendered"].(map[string]interface{}); ok {
+	if notFoundPage, ok := errorHandling["notFoundPage"].(map[string]any); ok {
+		if rendered, ok := notFoundPage["rendered"].(map[string]any); ok {
 			errorPages.NotFoundPage = rendered
 		}
 	}
 
 	// Parse server error page
-	if serverErrorPage, ok := errorHandling["serverErrorPage"].(map[string]interface{}); ok {
-		if rendered, ok := serverErrorPage["rendered"].(map[string]interface{}); ok {
+	if serverErrorPage, ok := errorHandling["serverErrorPage"].(map[string]any); ok {
+		if rendered, ok := serverErrorPage["rendered"].(map[string]any); ok {
 			errorPages.ServerErrorPage = rendered
 		}
 	}

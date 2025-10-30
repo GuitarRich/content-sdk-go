@@ -11,7 +11,7 @@ type MockContext struct {
 	request  *http.Request
 	response *httptest.ResponseRecorder
 	path     string
-	values   map[string]interface{}
+	values   map[string]any
 	headers  map[string]string
 }
 
@@ -23,17 +23,17 @@ func NewMockContext(method, path string) *MockContext {
 		request:  req,
 		response: resp,
 		path:     path,
-		values:   make(map[string]interface{}),
+		values:   make(map[string]any),
 		headers:  make(map[string]string),
 	}
 }
 
-func (m *MockContext) Request() *http.Request          { return m.request }
-func (m *MockContext) Response() http.ResponseWriter   { return m.response }
-func (m *MockContext) Path() string                    { return m.path }
-func (m *MockContext) SetPath(path string)             { m.path = path }
-func (m *MockContext) Get(key string) interface{}      { return m.values[key] }
-func (m *MockContext) Set(key string, val interface{}) { m.values[key] = val }
+func (m *MockContext) Request() *http.Request        { return m.request }
+func (m *MockContext) Response() http.ResponseWriter { return m.response }
+func (m *MockContext) Path() string                  { return m.path }
+func (m *MockContext) SetPath(path string)           { m.path = path }
+func (m *MockContext) Get(key string) any            { return m.values[key] }
+func (m *MockContext) Set(key string, val any)       { m.values[key] = val }
 func (m *MockContext) Cookie(name string) (*http.Cookie, error) {
 	return m.request.Cookie(name)
 }
@@ -54,7 +54,7 @@ func (m *MockContext) String(code int, s string) error {
 	m.response.WriteString(s)
 	return nil
 }
-func (m *MockContext) JSON(code int, i interface{}) error {
+func (m *MockContext) JSON(code int, i any) error {
 	m.response.WriteHeader(code)
 	return nil
 }

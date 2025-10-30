@@ -84,28 +84,28 @@ func (s *dictionaryServiceImpl) getDictionaryQuery(siteName, locale string) stri
 }
 
 // parseDictionaryResponse parses the GraphQL response into DictionaryPhrases
-func (s *dictionaryServiceImpl) parseDictionaryResponse(data map[string]interface{}) (models.DictionaryPhrases, error) {
+func (s *dictionaryServiceImpl) parseDictionaryResponse(data map[string]any) (models.DictionaryPhrases, error) {
 	phrases := make(models.DictionaryPhrases)
 
 	// Navigate through response structure
-	site, ok := data["site"].(map[string]interface{})
+	site, ok := data["site"].(map[string]any)
 	if !ok {
 		return phrases, nil // Return empty if no site data
 	}
 
-	siteInfo, ok := site["siteInfo"].(map[string]interface{})
+	siteInfo, ok := site["siteInfo"].(map[string]any)
 	if !ok {
 		return phrases, nil // Return empty if no site info
 	}
 
-	dictionary, ok := siteInfo["dictionary"].([]interface{})
+	dictionary, ok := siteInfo["dictionary"].([]any)
 	if !ok {
 		return phrases, nil // Return empty if no dictionary
 	}
 
 	// Parse each dictionary entry
 	for _, entry := range dictionary {
-		entryMap, ok := entry.(map[string]interface{})
+		entryMap, ok := entry.(map[string]any)
 		if !ok {
 			continue
 		}

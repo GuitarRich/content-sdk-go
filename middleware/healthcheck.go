@@ -11,7 +11,7 @@ type HealthcheckConfig struct {
 	Path string
 
 	// Response is the custom response to return
-	Response interface{}
+	Response any
 }
 
 // HealthcheckMiddleware provides a health check endpoint
@@ -91,7 +91,7 @@ func ReadinessHandler(checks map[string]func() bool) HandlerFunc {
 			statusCode = http.StatusServiceUnavailable
 		}
 
-		response := map[string]interface{}{
+		response := map[string]any{
 			"status":  status,
 			"details": details,
 		}
