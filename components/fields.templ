@@ -1,9 +1,6 @@
 package components
 
-import (
-	"fmt"
-	"github.com/content-sdk-go/models"
-)
+import "github.com/content-sdk-go/models"
 
 // RichText renders a rich text field with chrome markers in editing mode
 // Parameters:
@@ -34,20 +31,20 @@ templ RichText(fieldData interface{}, fieldName string, isEditingMode bool, cssC
 
 // Image renders an image field with chrome markers in editing mode
 // Parameters:
-//   - fieldData: The raw field data from Sitecore
+//   - field: The strongly-typed ImageField from Sitecore
 //   - fieldName: The field name (used for chrome markers)
 //   - isEditingMode: Whether we're in editing mode
 //   - cssClass: Optional CSS class to apply to the image
 //   - width: Optional width to override field's width (pass "" to use field's width)
 //   - height: Optional height to override field's height (pass "" to use field's height)
-templ Image(fieldData interface{}, fieldName string, isEditingMode bool, cssClass string, width string, height string) {
-	if field := models.ExtractImageFieldFromMap(fieldData); !field.IsEmpty() {
+templ Image(field *models.ImageField, fieldName string, isEditingMode bool, cssClass string, width string, height string) {
+	if field != nil && !field.IsEmpty() {
 		if isEditingMode {
 			// Manual chrome markers
 			@ChromeFieldOpen(fieldName, "image")
 			// Determine which width and height to use
 			if (width != "" || field.GetWidth() != "") && (height != "" || field.GetHeight() != "") {
-				<img 
+				<img
 					src={ templ.SafeURL(field.GetSrc()) }
 					alt={ field.GetAlt() }
 					if width != "" {
@@ -64,7 +61,7 @@ templ Image(fieldData interface{}, fieldName string, isEditingMode bool, cssClas
 					data-field-name={ fieldName }
 				/>
 			} else {
-				<img 
+				<img
 					src={ templ.SafeURL(field.GetSrc()) }
 					alt={ field.GetAlt() }
 					class={ cssClass }
@@ -76,7 +73,7 @@ templ Image(fieldData interface{}, fieldName string, isEditingMode bool, cssClas
 			// Normal mode - no chrome
 			// Determine which width and height to use
 			if (width != "" || field.GetWidth() != "") && (height != "" || field.GetHeight() != "") {
-				<img 
+				<img
 					src={ templ.SafeURL(field.GetSrc()) }
 					alt={ field.GetAlt() }
 					if width != "" {
@@ -92,15 +89,17 @@ templ Image(fieldData interface{}, fieldName string, isEditingMode bool, cssClas
 					class={ cssClass }
 				/>
 			} else {
-				<img 
+				<img
 					src={ templ.SafeURL(field.GetSrc()) }
 					alt={ field.GetAlt() }
 					class={ cssClass }
 				/>
 			}
 		}
-	} else {
-		@templ.Raw(fmt.Sprintf("Image field is empty: %+v", fieldData))
+	} else if isEditingMode {
+		@ChromeFieldOpen(fieldName, "image")
+		<span class="empty-image-placeholder" data-field-name={ fieldName }>[Empty Image]</span>
+		@ChromeFieldClose()
 	}
 }
 
@@ -116,7 +115,7 @@ templ Link(fieldData interface{}, fieldName string, isEditingMode bool, cssClass
 		if isEditingMode {
 			// Manual chrome markers
 			@ChromeFieldOpen(fieldName, "link")
-			<a 
+			<a
 				href={ templ.SafeURL(field.GetHref()) }
 				if field.GetTarget() != "" {
 					target={ field.GetTarget() }
@@ -138,7 +137,7 @@ templ Link(fieldData interface{}, fieldName string, isEditingMode bool, cssClass
 			@ChromeFieldClose()
 		} else {
 			// Normal mode - no chrome
-			<a 
+			<a
 				href={ templ.SafeURL(field.GetHref()) }
 				if field.GetTarget() != "" {
 					target={ field.GetTarget() }
@@ -245,4 +244,3 @@ templ Text(fieldData interface{}, fieldName string, isEditingMode bool, tag stri
 		}
 	}
 }
-
