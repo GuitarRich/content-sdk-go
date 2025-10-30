@@ -458,6 +458,79 @@ if err != nil {
 }
 ```
 
+## Component Variant Pattern
+
+**ALWAYS use variant pattern for components with multiple visual variations**
+
+```go
+// Define variant type and constants
+type ComponentVariant string
+
+const (
+    VariantDefault  ComponentVariant = "Default"
+    VariantLogoLeft ComponentVariant = "LogoLeft"
+    VariantCentered ComponentVariant = "Centered"
+)
+
+// GetComponentVariant extracts variant from params
+func GetComponentVariant(params map[string]interface{}) ComponentVariant {
+    if variant, ok := params["Variant"].(string); ok {
+        switch variant {
+        case "LogoLeft":
+            return VariantLogoLeft
+        case "Centered":
+            return VariantCentered
+        }
+    }
+    return VariantDefault
+}
+```
+
+```templ
+// Main component - switches on variant
+templ Component(fields interface{}, params map[string]interface{}) {
+    if ds := models.ExtractComponentDatasource(fields); ds != nil {
+        switch models.GetComponentVariant(params) {
+        case models.VariantLogoLeft:
+            @componentLogoLeft(ds, params, isEditingMode)
+        case models.VariantCentered:
+            @componentCentered(ds, params, isEditingMode)
+        default:
+            @componentDefault(ds, params, isEditingMode)
+        }
+    }
+}
+
+// Variant sub-components (unexported)
+templ componentDefault(ds *models.ComponentDatasource, params, isEditingMode) {
+    // Default implementation
+}
+
+templ componentLogoLeft(ds *models.ComponentDatasource, params, isEditingMode) {
+    // LogoLeft implementation
+}
+```
+
+```go
+// Component registry - register only main component
+r.Register("Component", components.Component)
+```
+
+**Benefits**:
+- ✅ Single registration
+- ✅ Centralized variant logic
+- ✅ Sitecore controls variant
+- ✅ Shared datasource
+- ✅ Maintainable
+
+**Anti-pattern**:
+```go
+// ❌ WRONG - Separate components for variants
+r.Register("Component", components.ComponentDefault)
+r.Register("ComponentLogoLeft", components.ComponentLogoLeft)
+r.Register("ComponentCentered", components.ComponentCentered)
+```
+
 ## Common Patterns
 
 ### List Component

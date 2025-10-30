@@ -692,6 +692,249 @@ Usage:
 @sdkcomponents.Image(ds.BannerRaw, "banner", isEditingMode, "responsive", "", "")
 ```
 
+## Component Variant Pattern
+
+### Overview
+
+Components in Sitecore often have multiple visual variants (e.g., "Default", "LogoLeft", "Centered"). **ALWAYS use a single main component that switches on the variant** rather than creating separate components for each variant.
+
+### Why Use Variant Pattern?
+
+- ✅ **Single registration**: Only one entry in component registry
+- ✅ **Centralized logic**: Variant switching in one place
+- ✅ **Sitecore-driven**: Variant controlled through Sitecore parameters
+- ✅ **Shared datasource**: All variants use the same strongly-typed datasource
+- ✅ **Maintainable**: Changes to variant logic happen in one place
+- ✅ **Clean code**: No duplication, clear structure
+
+### Variant Model Pattern
+
+```go
+// models/component.go
+
+// Define variant type with string constants
+type ComponentVariant string
+
+const (
+    VariantDefault  ComponentVariant = "Default"
+    VariantLogoLeft ComponentVariant = "LogoLeft"
+    VariantLogoRight ComponentVariant = "LogoRight"
+    VariantCentered ComponentVariant = "Centered"
+)
+
+// GetComponentVariant extracts and validates variant from params
+func GetComponentVariant(params map[string]interface{}) ComponentVariant {
+    if params == nil {
+        return VariantDefault
+    }
+    
+    if variant, ok := params["Variant"].(string); ok {
+        switch variant {
+        case "LogoLeft":
+            return VariantLogoLeft
+        case "LogoRight":
+            return VariantLogoRight
+        case "Centered":
+            return VariantCentered
+        default:
+            return VariantDefault
+        }
+    }
+    
+    return VariantDefault
+}
+```
+
+### Main Component Template
+
+```templ
+// components/component.templ
+
+// Main component (exported, PascalCase) - switches on variant
+templ Component(fields interface{}, params map[string]interface{}) {
+    if ds := models.ExtractComponentDatasource(fields); ds != nil {
+        if isEditingMode := components.GetEditingMode(params); true {
+            switch models.GetComponentVariant(params) {
+            case models.VariantLogoLeft:
+                @componentLogoLeft(ds, params, isEditingMode)
+            case models.VariantLogoRight:
+                @componentLogoRight(ds, params, isEditingMode)
+            case models.VariantCentered:
+                @componentCentered(ds, params, isEditingMode)
+            default:
+                @componentDefault(ds, params, isEditingMode)
+            }
+        }
+    }
+}
+
+// Variant sub-components (unexported, camelCase)
+templ componentDefault(ds *models.ComponentDatasource, params map[string]interface{}, isEditingMode bool) {
+    <section 
+        class={ "component-default", models.GetStyleParam(params, "styles") }
+        if renderingId := models.GetStringParam(params, "RenderingIdentifier"); renderingId != "" {
+            id={ renderingId }
+        }
+    >
+        if ds.HasTitle() {
+            <h1>
+                @sdkcomponents.PlainText(ds.TitleRaw, "Title", isEditingMode)
+            </h1>
+        }
+        // Default variant implementation
+    </section>
+}
+
+templ componentLogoLeft(ds *models.ComponentDatasource, params map[string]interface{}, isEditingMode bool) {
+    <section 
+        class={ "component-logo-left", models.GetStyleParam(params, "styles") }
+        if renderingId := models.GetStringParam(params, "RenderingIdentifier"); renderingId != "" {
+            id={ renderingId }
+        }
+    >
+        // LogoLeft variant implementation
+    </section>
+}
+
+templ componentLogoRight(ds *models.ComponentDatasource, params map[string]interface{}, isEditingMode bool) {
+    <section 
+        class={ "component-logo-right", models.GetStyleParam(params, "styles") }
+        if renderingId := models.GetStringParam(params, "RenderingIdentifier"); renderingId != "" {
+            id={ renderingId }
+        }
+    >
+        // LogoRight variant implementation
+    </section>
+}
+```
+
+### Component Registry
+
+```go
+// services/component_registry.go
+
+func (r *ComponentRegistry) registerComponents() {
+    // ✅ CORRECT - Register only the main component
+    r.Register("Component", components.Component)
+    
+    // ❌ WRONG - Don't register individual variants
+    // r.Register("Component", components.ComponentDefault)
+    // r.Register("ComponentDefault", components.ComponentDefault)
+    // r.Register("ComponentLogoLeft", components.ComponentLogoLeft)
+    // r.Register("ComponentLogoRight", components.ComponentLogoRight)
+}
+```
+
+### Complete Example: Footer with Variants
+
+```go
+// models/footer.go
+
+type FooterDatasource struct {
+    Title          *sdkmodels.TextField
+    CopyrightText  *sdkmodels.RichTextField
+    FacebookLink   *sdkmodels.LinkField
+    
+    TitleRaw         interface{}
+    CopyrightTextRaw interface{}
+    FacebookLinkRaw  interface{}
+}
+
+type FooterVariant string
+
+const (
+    FooterVariantDefault  FooterVariant = "Default"
+    FooterVariantLogoLeft FooterVariant = "LogoLeft"
+    FooterVariantLogoRight FooterVariant = "LogoRight"
+    FooterVariantCentered FooterVariant = "Centered"
+)
+
+func GetFooterVariant(params map[string]interface{}) FooterVariant {
+    if variant, ok := params["Variant"].(string); ok {
+        switch variant {
+        case "LogoLeft":
+            return FooterVariantLogoLeft
+        case "LogoRight":
+            return FooterVariantLogoRight
+        case "Centered":
+            return FooterVariantCentered
+        default:
+            return FooterVariantDefault
+        }
+    }
+    return FooterVariantDefault
+}
+
+func (d *FooterDatasource) HasTitle() bool {
+    return d != nil && d.Title != nil && !d.Title.IsEmpty()
+}
+```
+
+```templ
+// components/footer.templ
+
+templ Footer(fields interface{}, params map[string]interface{}) {
+    if ds := models.ExtractFooterDatasource(fields); ds != nil {
+        if isEditingMode := components.GetEditingMode(params); true {
+            switch models.GetFooterVariant(params) {
+            case models.FooterVariantLogoLeft:
+                @footerLogoLeft(ds, params, isEditingMode)
+            case models.FooterVariantLogoRight:
+                @footerLogoRight(ds, params, isEditingMode)
+            case models.FooterVariantCentered:
+                @footerCentered(ds, params, isEditingMode)
+            default:
+                @footerDefault(ds, params, isEditingMode)
+            }
+        }
+    }
+}
+
+templ footerDefault(ds *models.FooterDatasource, params map[string]interface{}, isEditingMode bool) {
+    <footer class={ "footer-default", models.GetStyleParam(params, "styles") }>
+        if ds.HasTitle() {
+            <div>
+                @sdkcomponents.PlainText(ds.TitleRaw, "Title", isEditingMode)
+            </div>
+        }
+        if ds.CopyrightText != nil && !ds.CopyrightText.IsEmpty() {
+            @sdkcomponents.RichText(ds.CopyrightTextRaw, "CopyrightText", isEditingMode, "")
+        }
+    </footer>
+}
+
+templ footerLogoLeft(ds *models.FooterDatasource, params map[string]interface{}, isEditingMode bool) {
+    <footer class={ "footer-logo-left", models.GetStyleParam(params, "styles") }>
+        // LogoLeft variant implementation
+    </footer>
+}
+```
+
+### Anti-Pattern: Separate Components
+
+```go
+// ❌ WRONG - Don't do this
+
+// Separate components for each variant
+templ FooterDefault(fields interface{}, params map[string]interface{}) {
+    // Duplicate extraction logic
+}
+
+templ FooterLogoLeft(fields interface{}, params map[string]interface{}) {
+    // Duplicate extraction logic
+}
+
+templ FooterLogoRight(fields interface{}, params map[string]interface{}) {
+    // Duplicate extraction logic
+}
+
+// Cluttered registry
+r.Register("Footer", components.FooterDefault)
+r.Register("FooterDefault", components.FooterDefault)
+r.Register("FooterLogoLeft", components.FooterLogoLeft)
+r.Register("FooterLogoRight", components.FooterLogoRight)
+```
+
 ## Common Patterns
 
 ### Component with Variants
