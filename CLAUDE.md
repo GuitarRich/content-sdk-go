@@ -574,6 +574,244 @@ templ Component(ds *models.ComponentDatasource, isEditingMode bool) {
 }
 ```
 
+## Modern Go Constructs (Go 1.18+)
+
+**ALWAYS use modern Go features** to write cleaner, more efficient code.
+
+### Use 'any' Instead of 'interface{}' (Go 1.18+)
+
+```go
+// ✅ CORRECT - Modern Go
+func ProcessField(field any) string {
+    fieldMap, ok := field.(map[string]interface{})
+    return fieldMap["value"].(string)
+}
+
+type ComponentDatasource struct {
+    TitleRaw any
+}
+
+// ❌ WRONG - Legacy syntax
+func ProcessField(field interface{}) string { }
+```
+
+### Built-in min/max Functions (Go 1.21+)
+
+```go
+// ✅ CORRECT
+pageSize := max(1, min(requestedSize, 100))
+height := max(minHeight, calculatedHeight)
+
+// ❌ WRONG
+var height int
+if calculatedHeight > minHeight {
+    height = calculatedHeight
+} else {
+    height = minHeight
+}
+```
+
+### slices Package (Go 1.21+)
+
+```go
+import "slices"
+
+// ✅ CORRECT
+if slices.Contains(validTypes, fieldType) { }
+slices.Sort(items)
+newSlice := slices.Clone(originalSlice)
+
+// ❌ WRONG
+found := false
+for _, t := range validTypes {
+    if t == fieldType {
+        found = true
+        break
+    }
+}
+```
+
+### maps Package (Go 1.21+)
+
+```go
+import "maps"
+
+// ✅ CORRECT
+newMap := maps.Clone(originalMap)
+maps.Copy(destination, source)
+
+// ❌ WRONG
+newMap := make(map[string]string)
+for k, v := range originalMap {
+    newMap[k] = v
+}
+```
+
+### Range Over Integers (Go 1.22+)
+
+```go
+// ✅ CORRECT
+for i := range 10 {
+    fmt.Println(i)  // 0-9
+}
+
+for i := range count {
+    items[i] = processItem(i)
+}
+
+// ❌ WRONG
+for i := 0; i < 10; i++ {
+    fmt.Println(i)
+}
+```
+
+### Simplified Loop Variables (Go 1.22+)
+
+```go
+// ✅ CORRECT - No shadowing needed in Go 1.22+
+for _, item := range items {
+    go func() {
+        process(item)  // Safe
+    }()
+}
+
+// ❌ WRONG - Unnecessary
+for _, item := range items {
+    item := item  // Not needed
+    go func() {
+        process(item)
+    }()
+}
+```
+
+### strings.Cut and CutPrefix (Go 1.20+)
+
+```go
+// ✅ CORRECT
+if path, found := strings.CutPrefix(url, "/api/"); found {
+    return path
+}
+
+if key, val, found := strings.Cut(header, ":"); found {
+    return key, val
+}
+
+// ❌ WRONG
+if strings.HasPrefix(url, "/api/") {
+    return strings.TrimPrefix(url, "/api/")
+}
+```
+
+### fmt.Appendf (Go 1.19+)
+
+```go
+// ✅ CORRECT
+var buf []byte
+buf = fmt.Appendf(buf, "Name: %s", name)
+
+// ❌ WRONG
+buf := []byte(fmt.Sprintf("Name: %s", name))
+```
+
+### t.Context() in Tests (Go 1.24+)
+
+```go
+// ✅ CORRECT
+func TestFetch(t *testing.T) {
+    ctx := t.Context()  // Auto-canceled
+    result, err := Fetch(ctx)
+    // ...
+}
+
+// ❌ WRONG
+func TestFetch(t *testing.T) {
+    ctx, cancel := context.WithCancel(context.Background())
+    defer cancel()
+    result, err := Fetch(ctx)
+    // ...
+}
+```
+
+### b.Loop() in Benchmarks (Go 1.23+)
+
+```go
+// ✅ CORRECT
+func BenchmarkProcess(b *testing.B) {
+    for b.Loop() {
+        Process(data)
+    }
+}
+
+// ❌ WRONG
+func BenchmarkProcess(b *testing.B) {
+    b.ResetTimer()
+    for i := 0; i < b.N; i++ {
+        Process(data)
+    }
+}
+```
+
+### strings.*Seq Iterators (Go 1.24+)
+
+```go
+// ✅ CORRECT - More efficient
+for part := range strings.SplitSeq(text, ",") {
+    process(part)
+}
+
+for field := range strings.FieldsSeq(text) {
+    process(field)
+}
+
+// ❌ WRONG - Creates entire slice
+for _, part := range strings.Split(text, ",") {
+    process(part)
+}
+```
+
+### sync.WaitGroup.Go (Go 1.25+)
+
+```go
+// ✅ CORRECT
+var wg sync.WaitGroup
+for _, item := range items {
+    wg.Go(func() {
+        process(item)
+    })
+}
+wg.Wait()
+
+// ❌ WRONG
+var wg sync.WaitGroup
+for _, item := range items {
+    wg.Add(1)
+    go func(item Item) {
+        defer wg.Done()
+        process(item)
+    }(item)
+}
+wg.Wait()
+```
+
+### Automatic Modernization
+
+```bash
+# Install modernize tool
+go install golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest
+
+# Apply all fixes
+modernize -fix -test ./...
+
+# Apply specific category
+modernize -category=efaceany -fix -test ./...
+modernize -category=minmax -fix -test ./...
+
+# Exclude specific category
+modernize -category=-efaceany -fix -test ./...
+```
+
+Categories: `efaceany`, `minmax`, `slicescontains`, `sortslice`, `rangeint`, `forvar`, `stringscutprefix`, `stringsseq`, `fmtappendf`, `testingcontext`, `bloop`, `waitgroup`, `mapsloop`
+
 ## Field Type Reference
 
 ### TextField

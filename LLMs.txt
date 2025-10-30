@@ -531,6 +531,73 @@ r.Register("ComponentLogoLeft", components.ComponentLogoLeft)
 r.Register("ComponentCentered", components.ComponentCentered)
 ```
 
+## Modern Go (Go 1.18+)
+
+Use modern Go features and stdlib functions:
+
+```go
+// ✅ Use 'any' not 'interface{}' (Go 1.18+)
+func Process(field any) { }
+type Data struct { Raw any }
+
+// ✅ Built-in min/max (Go 1.21+)
+size := max(1, min(requested, 100))
+
+// ✅ slices package (Go 1.21+)
+import "slices"
+if slices.Contains(items, needle) { }
+slices.Sort(items)
+newSlice := slices.Clone(items)
+
+// ✅ maps package (Go 1.21+)
+import "maps"
+newMap := maps.Clone(original)
+maps.Copy(dest, src)
+
+// ✅ Range over int (Go 1.22+)
+for i := range 10 { fmt.Println(i) }
+for i := range count { process(i) }
+
+// ✅ No x := x needed (Go 1.22+)
+for _, item := range items {
+    go func() { process(item) }()  // Safe
+}
+
+// ✅ strings.Cut/CutPrefix (Go 1.20+)
+if path, ok := strings.CutPrefix(url, "/api/"); ok { }
+if key, val, ok := strings.Cut(header, ":"); ok { }
+
+// ✅ fmt.Appendf (Go 1.19+)
+buf = fmt.Appendf(buf, "Name: %s", name)
+
+// ✅ t.Context() (Go 1.24+)
+func TestFoo(t *testing.T) {
+    ctx := t.Context()  // Auto-canceled
+}
+
+// ✅ b.Loop() (Go 1.23+)
+func BenchmarkFoo(b *testing.B) {
+    for b.Loop() { process() }
+}
+
+// ✅ strings.*Seq (Go 1.24+)
+for part := range strings.SplitSeq(text, ",") { }
+for field := range strings.FieldsSeq(text) { }
+
+// ✅ WaitGroup.Go (Go 1.25+)
+var wg sync.WaitGroup
+for _, item := range items {
+    wg.Go(func() { process(item) })
+}
+wg.Wait()
+```
+
+Auto-modernize:
+```bash
+go install golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest
+modernize -fix -test ./...
+```
+
 ## Common Patterns
 
 ### List Component

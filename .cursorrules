@@ -287,6 +287,279 @@ func ProcessField(field interface{}) string {
 }
 ```
 
+## Modern Go Constructs (Go 1.18+)
+
+**ALWAYS use modern Go features and standard library functions** when available.
+
+### Use 'any' instead of 'interface{}' (Go 1.18+)
+
+```go
+// ✅ CORRECT - Modern
+func ProcessField(field any) string {
+    fieldMap, ok := field.(map[string]interface{})
+    // ...
+}
+
+type ComponentDatasource struct {
+    TitleRaw any  // Modern
+}
+
+// ❌ WRONG - Legacy
+func ProcessField(field interface{}) string { }
+type ComponentDatasource struct {
+    TitleRaw interface{}  // Legacy
+}
+```
+
+### Use built-in min/max (Go 1.21+)
+
+```go
+// ✅ CORRECT - Built-in functions
+height := max(minHeight, calculatedHeight)
+width := min(maxWidth, availableWidth)
+pageSize := max(1, min(requestedSize, 100))
+
+// ❌ WRONG - Manual conditionals
+var height int
+if calculatedHeight > minHeight {
+    height = calculatedHeight
+} else {
+    height = minHeight
+}
+```
+
+### Use slices package (Go 1.21+)
+
+```go
+import "slices"
+
+// ✅ CORRECT - slices.Contains
+if slices.Contains(validTypes, fieldType) {
+    // ...
+}
+
+// ❌ WRONG - Manual loop
+found := false
+for _, t := range validTypes {
+    if t == fieldType {
+        found = true
+        break
+    }
+}
+
+// ✅ CORRECT - slices.Sort
+slices.Sort(items)
+
+// ❌ WRONG - sort.Slice
+sort.Slice(items, func(i, j int) bool {
+    return items[i] < items[j]
+})
+
+// ✅ CORRECT - slices.Clone
+newSlice := slices.Clone(originalSlice)
+
+// ❌ WRONG - Manual copy
+newSlice := append([]string(nil), originalSlice...)
+```
+
+### Use maps package (Go 1.21+)
+
+```go
+import "maps"
+
+// ✅ CORRECT - maps.Clone
+newMap := maps.Clone(originalMap)
+
+// ❌ WRONG - Manual loop
+newMap := make(map[string]string)
+for k, v := range originalMap {
+    newMap[k] = v
+}
+
+// ✅ CORRECT - maps.Copy
+maps.Copy(destination, source)
+
+// ✅ CORRECT - maps.Collect from iterator
+result := maps.Collect(someIterator())
+```
+
+### Range over integers (Go 1.22+)
+
+```go
+// ✅ CORRECT - Range over integer
+for i := range 10 {
+    fmt.Println(i)  // 0 through 9
+}
+
+for i := range count {
+    items[i] = processItem(i)
+}
+
+// ❌ WRONG - Traditional 3-clause loop
+for i := 0; i < 10; i++ {
+    fmt.Println(i)
+}
+```
+
+### Simplified loop variables (Go 1.22+)
+
+```go
+// ✅ CORRECT - No need for x := x pattern in Go 1.22+
+for _, item := range items {
+    go func() {
+        process(item)  // Safe in Go 1.22+
+    }()
+}
+
+// ❌ WRONG - Unnecessary in Go 1.22+
+for _, item := range items {
+    item := item  // Not needed anymore
+    go func() {
+        process(item)
+    }()
+}
+```
+
+### Use strings.Cut and strings.CutPrefix (Go 1.20+)
+
+```go
+// ✅ CORRECT - strings.CutPrefix
+if result, found := strings.CutPrefix(path, "/api/"); found {
+    return result
+}
+
+// ❌ WRONG - HasPrefix + TrimPrefix
+if strings.HasPrefix(path, "/api/") {
+    return strings.TrimPrefix(path, "/api/")
+}
+
+// ✅ CORRECT - strings.Cut
+if before, after, found := strings.Cut(header, ":"); found {
+    return before, after
+}
+
+// ❌ WRONG - strings.Split with length check
+parts := strings.Split(header, ":")
+if len(parts) == 2 {
+    return parts[0], parts[1]
+}
+```
+
+### Use fmt.Appendf (Go 1.19+)
+
+```go
+// ✅ CORRECT - fmt.Appendf
+var buf []byte
+buf = fmt.Appendf(buf, "Name: %s, Age: %d", name, age)
+
+// ❌ WRONG - []byte(fmt.Sprintf(...))
+buf := []byte(fmt.Sprintf("Name: %s, Age: %d", name, age))
+```
+
+### Use t.Context() in tests (Go 1.24+)
+
+```go
+// ✅ CORRECT - t.Context()
+func TestSomething(t *testing.T) {
+    ctx := t.Context()  // Automatically canceled when test completes
+    result, err := FetchData(ctx)
+    // ...
+}
+
+// ❌ WRONG - Manual context.WithCancel
+func TestSomething(t *testing.T) {
+    ctx, cancel := context.WithCancel(context.Background())
+    defer cancel()
+    result, err := FetchData(ctx)
+    // ...
+}
+```
+
+### Use b.Loop() in benchmarks (Go 1.23+)
+
+```go
+// ✅ CORRECT - b.Loop()
+func BenchmarkProcess(b *testing.B) {
+    for b.Loop() {
+        Process(data)
+    }
+}
+
+// ❌ WRONG - for i := range b.N or b.ResetTimer patterns
+func BenchmarkProcess(b *testing.B) {
+    b.ResetTimer()
+    for i := 0; i < b.N; i++ {
+        Process(data)
+    }
+}
+```
+
+### Use strings.*Seq iterators (Go 1.24+)
+
+```go
+// ✅ CORRECT - SplitSeq for iteration
+for part := range strings.SplitSeq(text, ",") {
+    process(part)
+}
+
+// ❌ WRONG - Split with range
+for _, part := range strings.Split(text, ",") {
+    process(part)
+}
+
+// ✅ CORRECT - FieldsSeq
+for field := range strings.FieldsSeq(text) {
+    process(field)
+}
+
+// ❌ WRONG - Fields with range
+for _, field := range strings.Fields(text) {
+    process(field)
+}
+```
+
+### Use sync.WaitGroup.Go (Go 1.25+)
+
+```go
+// ✅ CORRECT - WaitGroup.Go
+var wg sync.WaitGroup
+for _, item := range items {
+    wg.Go(func() {
+        process(item)
+    })
+}
+wg.Wait()
+
+// ❌ WRONG - Manual Add/Done pattern
+var wg sync.WaitGroup
+for _, item := range items {
+    wg.Add(1)
+    go func(item Item) {
+        defer wg.Done()
+        process(item)
+    }(item)
+}
+wg.Wait()
+```
+
+### Modernization Command
+
+To modernize existing code automatically:
+
+```bash
+# Install modernize tool
+go install golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest
+
+# Apply all fixes
+modernize -fix -test ./...
+
+# Apply specific category (e.g., efaceany)
+modernize -category=efaceany -fix -test ./...
+
+# Apply all except specific category
+modernize -category=-efaceany -fix -test ./...
+```
+
 ## Templ Template Best Practices
 
 ### Component Structure

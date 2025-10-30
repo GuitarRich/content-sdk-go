@@ -173,6 +173,300 @@ if err != nil {
 }
 ```
 
+## Modern Go Constructs (Go 1.18+)
+
+**ALWAYS use modern Go features and standard library functions** to write cleaner, more idiomatic code.
+
+### Use 'any' instead of 'interface{}' (Go 1.18+)
+
+```go
+// ✅ GOOD - Modern Go
+func ProcessField(field any) string {
+    fieldMap, ok := field.(map[string]interface{})
+    // ...
+}
+
+type ComponentDatasource struct {
+    TitleRaw any  // Modern, cleaner
+}
+
+// ❌ BAD - Legacy syntax
+func ProcessField(field interface{}) string { }
+
+type ComponentDatasource struct {
+    TitleRaw interface{}  // Old style
+}
+```
+
+### Use Built-in min/max Functions (Go 1.21+)
+
+```go
+// ✅ GOOD - Built-in functions
+pageSize := max(1, min(requestedSize, 100))
+height := max(minHeight, calculatedHeight)
+width := min(maxWidth, availableWidth)
+
+// ❌ BAD - Manual conditional
+var height int
+if calculatedHeight > minHeight {
+    height = calculatedHeight
+} else {
+    height = minHeight
+}
+```
+
+### Use slices Package (Go 1.21+)
+
+```go
+import "slices"
+
+// ✅ GOOD - slices.Contains
+if slices.Contains(validTypes, fieldType) {
+    // Process valid type
+}
+
+// ❌ BAD - Manual loop
+found := false
+for _, t := range validTypes {
+    if t == fieldType {
+        found = true
+        break
+    }
+}
+
+// ✅ GOOD - slices.Sort (for comparable types)
+slices.Sort(items)
+
+// ❌ BAD - sort.Slice with manual comparison
+sort.Slice(items, func(i, j int) bool {
+    return items[i] < items[j]
+})
+
+// ✅ GOOD - slices.Clone
+newSlice := slices.Clone(originalSlice)
+
+// ❌ BAD - Manual append clone
+newSlice := append([]string(nil), originalSlice...)
+```
+
+### Use maps Package (Go 1.21+)
+
+```go
+import "maps"
+
+// ✅ GOOD - maps.Clone
+paramsCopy := maps.Clone(originalParams)
+
+// ❌ BAD - Manual map copy loop
+paramsCopy := make(map[string]string)
+for k, v := range originalParams {
+    paramsCopy[k] = v
+}
+
+// ✅ GOOD - maps.Copy
+maps.Copy(destination, source)
+
+// ✅ GOOD - maps.Collect from iterator
+result := maps.Collect(someIterator())
+```
+
+### Range Over Integers (Go 1.22+)
+
+```go
+// ✅ GOOD - Range over integer count
+for i := range 10 {
+    fmt.Println(i)  // Prints 0 through 9
+}
+
+for i := range itemCount {
+    items[i] = processItem(i)
+}
+
+// ❌ BAD - Traditional 3-clause loop
+for i := 0; i < 10; i++ {
+    fmt.Println(i)
+}
+
+for i := 0; i < itemCount; i++ {
+    items[i] = processItem(i)
+}
+```
+
+### Simplified Loop Variables (Go 1.22+)
+
+In Go 1.22+, loop variables are per-iteration, eliminating the need for the `x := x` pattern.
+
+```go
+// ✅ GOOD - Safe in Go 1.22+, no shadowing needed
+for _, item := range items {
+    go func() {
+        process(item)  // Each goroutine gets correct item
+    }()
+}
+
+// ❌ BAD - Unnecessary in Go 1.22+
+for _, item := range items {
+    item := item  // Not needed anymore
+    go func() {
+        process(item)
+    }()
+}
+```
+
+### Use strings.Cut and strings.CutPrefix (Go 1.20+)
+
+```go
+// ✅ GOOD - strings.CutPrefix
+if trimmed, found := strings.CutPrefix(path, "/api/"); found {
+    return trimmed
+}
+
+// ❌ BAD - HasPrefix + TrimPrefix (two operations)
+if strings.HasPrefix(path, "/api/") {
+    return strings.TrimPrefix(path, "/api/")
+}
+
+// ✅ GOOD - strings.Cut
+if key, value, found := strings.Cut(header, ":"); found {
+    return key, value
+}
+
+// ❌ BAD - strings.Split with length check
+parts := strings.Split(header, ":")
+if len(parts) == 2 {
+    return parts[0], parts[1]
+}
+```
+
+### Use fmt.Appendf (Go 1.19+)
+
+```go
+// ✅ GOOD - fmt.Appendf (efficient)
+var buf []byte
+buf = fmt.Appendf(buf, "Name: %s, Age: %d", name, age)
+
+// ❌ BAD - []byte(fmt.Sprintf(...)) (extra allocation)
+buf := []byte(fmt.Sprintf("Name: %s, Age: %d", name, age))
+```
+
+### Use t.Context() in Tests (Go 1.24+)
+
+```go
+// ✅ GOOD - t.Context() (automatically canceled)
+func TestFetchData(t *testing.T) {
+    ctx := t.Context()  // Canceled when test completes
+    result, err := FetchData(ctx)
+    require.NoError(t, err)
+}
+
+// ❌ BAD - Manual context management
+func TestFetchData(t *testing.T) {
+    ctx, cancel := context.WithCancel(context.Background())
+    defer cancel()
+    result, err := FetchData(ctx)
+    require.NoError(t, err)
+}
+```
+
+### Use b.Loop() in Benchmarks (Go 1.23+)
+
+```go
+// ✅ GOOD - b.Loop() (defeats optimizations)
+func BenchmarkProcess(b *testing.B) {
+    for b.Loop() {
+        Process(data)
+    }
+}
+
+// ❌ BAD - Manual loop with b.N
+func BenchmarkProcess(b *testing.B) {
+    b.ResetTimer()
+    for i := 0; i < b.N; i++ {
+        Process(data)
+    }
+}
+```
+
+### Use strings.*Seq Iterators (Go 1.24+)
+
+```go
+// ✅ GOOD - SplitSeq (more efficient for iteration)
+for part := range strings.SplitSeq(text, ",") {
+    process(part)
+}
+
+// ❌ BAD - Split creates entire slice upfront
+for _, part := range strings.Split(text, ",") {
+    process(part)
+}
+
+// ✅ GOOD - FieldsSeq
+for field := range strings.FieldsSeq(text) {
+    process(field)
+}
+
+// ❌ BAD - Fields creates entire slice
+for _, field := range strings.Fields(text) {
+    process(field)
+}
+```
+
+### Use sync.WaitGroup.Go (Go 1.25+)
+
+```go
+// ✅ GOOD - WaitGroup.Go (cleaner API)
+var wg sync.WaitGroup
+for _, item := range items {
+    wg.Go(func() {
+        process(item)
+    })
+}
+wg.Wait()
+
+// ❌ BAD - Manual Add/Done pattern
+var wg sync.WaitGroup
+for _, item := range items {
+    wg.Add(1)
+    go func(item Item) {
+        defer wg.Done()
+        process(item)
+    }(item)
+}
+wg.Wait()
+```
+
+### Automatic Modernization Tool
+
+You can automatically apply these modernizations using the official tool:
+
+```bash
+# Install the modernize tool
+go install golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest
+
+# Apply all modernizations
+modernize -fix -test ./...
+
+# Apply specific category (e.g., only 'any' replacements)
+modernize -category=efaceany -fix -test ./...
+
+# Apply everything except specific category
+modernize -category=-efaceany -fix -test ./...
+```
+
+Available categories:
+- `efaceany`: interface{} → any
+- `minmax`: conditionals → min/max
+- `slicescontains`: loops → slices.Contains
+- `sortslice`: sort.Slice → slices.Sort
+- `rangeint`: 3-clause loops → range int
+- `forvar`: remove unnecessary x := x
+- `stringscutprefix`: HasPrefix+TrimPrefix → CutPrefix
+- `stringsseq`: Split/Fields → SplitSeq/FieldsSeq
+- `fmtappendf`: []byte(Sprintf) → Appendf
+- `testingcontext`: context.WithCancel → t.Context
+- `bloop`: manual loops → b.Loop
+- `waitgroup`: manual Add/Done → WaitGroup.Go
+
 ## Critical SDK Patterns
 
 ### 1. Always Use SDK Field Renderers
