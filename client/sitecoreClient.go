@@ -1,10 +1,15 @@
 package client
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
+	"github.com/content-sdk-go/debug"
+	"github.com/content-sdk-go/graphql"
 	layoutservice "github.com/content-sdk-go/layoutService"
 	"github.com/content-sdk-go/models"
 )
@@ -19,10 +24,12 @@ const (
 
 // SitecoreClient provides access to Sitecore content and services
 type SitecoreClient struct {
-	layoutService *layoutservice.LayoutService
-	httpClient    *http.Client
-	defaultSite   string
-	defaultLang   string
+	layoutService   *layoutservice.LayoutService
+	httpClient      *http.Client
+	defaultSite     string
+	defaultLang     string
+	graphQLEndpoint string
+	graphQLAPIKey   string
 }
 
 // ClientConfig contains configuration for the Sitecore client
@@ -31,6 +38,8 @@ type ClientConfig struct {
 	HTTPClient      *http.Client
 	DefaultSite     string
 	DefaultLanguage string
+	GraphQLEndpoint string
+	GraphQLAPIKey   string
 }
 
 // NewSitecoreClient creates a new Sitecore client
@@ -51,10 +60,12 @@ func NewSitecoreClient(config ClientConfig) *SitecoreClient {
 	}
 
 	return &SitecoreClient{
-		layoutService: config.LayoutService,
-		httpClient:    httpClient,
-		defaultSite:   defaultSite,
-		defaultLang:   defaultLang,
+		layoutService:   config.LayoutService,
+		httpClient:      httpClient,
+		defaultSite:     defaultSite,
+		defaultLang:     defaultLang,
+		graphQLEndpoint: config.GraphQLEndpoint,
+		graphQLAPIKey:   config.GraphQLAPIKey,
 	}
 }
 
@@ -106,11 +117,110 @@ func (c *SitecoreClient) GetPage(path string, options models.PageOptions) (*mode
 	return page, nil
 }
 
-// GetPreview fetches preview/editing data
+// GetPreview fetches preview/editing data for Sitecore Pages editor
 func (c *SitecoreClient) GetPreview(previewData models.PreviewData) (*models.Page, error) {
-	// TODO: Implement preview fetching
-	// This requires special GraphQL queries for preview mode
-	return nil, fmt.Errorf("preview mode not yet implemented")
+	debug.Editing("fetching preview data for item %s, language %s, site %s, mode %s",
+		previewData.ItemID, previewData.Language, previewData.Site, previewData.Mode)
+
+	// Build GraphQL query for editing data
+	query := `
+		query EditingQuery($itemId: String!, $language: String!, $version: String) {
+			item(path: $itemId, language: $language, version: $version) {
+				rendered
+			}
+		}
+	`
+
+	// Build variables
+	variables := map[string]any{
+		"itemId":   previewData.ItemID,
+		"language": previewData.Language,
+	}
+
+	if previewData.Version != "" {
+		variables["version"] = previewData.Version
+	}
+
+	// Create custom headers for editing mode
+	headers := make(map[string]string)
+	headers["sc_layoutKind"] = string(previewData.LayoutKind)
+
+	// Set edit mode header
+	if previewData.Mode == models.PreviewModeEdit || previewData.Mode == models.PreviewModeMetadata {
+		headers["sc_editMode"] = "true"
+	} else {
+		headers["sc_editMode"] = "false"
+	}
+
+	debug.Editing("GraphQL headers: %+v", headers)
+
+	// Create a new GraphQL client config with custom headers
+	clientConfig := &graphql.ClientConfig{
+		Retries:    3,
+		Timeout:    30 * time.Second,
+		RetryDelay: 1 * time.Second,
+		Headers:    headers,
+	}
+
+	// Create a temporary GraphQL client with custom headers
+	graphQLClient := graphql.NewClient(
+		c.graphQLEndpoint,
+		c.graphQLAPIKey,
+		c.httpClient,
+		clientConfig,
+	)
+
+	// Execute GraphQL request
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	result, err := graphQLClient.Request(ctx, query, variables)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch editing data: %w", err)
+	}
+
+	// Extract the rendered layout data
+	item, ok := result["item"].(map[string]any)
+	if !ok || item == nil {
+		return nil, fmt.Errorf("item not found in GraphQL response")
+	}
+
+	rendered, ok := item["rendered"].(map[string]any)
+	if !ok || rendered == nil {
+		return nil, fmt.Errorf("rendered data not found in item")
+	}
+
+	// Parse rendered data into LayoutServiceData struct
+	// This is necessary for the renderer to work correctly
+	layoutData, err := c.parseRenderedData(rendered)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse rendered data: %w", err)
+	}
+
+	// Create page response
+	page := &models.Page{
+		LayoutData: layoutData,
+		Language:   previewData.Language,
+		Site:       previewData.Site,
+		ItemID:     previewData.ItemID,
+		Path:       previewData.Route,
+		EditingContext: &models.EditingContext{
+			IsEditing: previewData.Mode == models.PreviewModeEdit || previewData.Mode == models.PreviewModeMetadata,
+			IsPreview: previewData.Mode == models.PreviewModePreview,
+			Mode:      models.PageModeEdit,
+			QueryParams: map[string]string{
+				"sc_itemid":     previewData.ItemID,
+				"sc_lang":       previewData.Language,
+				"sc_site":       previewData.Site,
+				"sc_layoutKind": string(previewData.LayoutKind),
+				"mode":          string(previewData.Mode),
+			},
+		},
+	}
+
+	debug.Editing("preview page fetched successfully")
+
+	return page, nil
 }
 
 // GetDesignLibraryData fetches design library component data
@@ -291,4 +401,21 @@ func NormalizePersonalizedRewrite(path string) string {
 
 	result := "/" + strings.Join(normalizedParts, "/")
 	return strings.ReplaceAll(result, "//", "/")
+}
+
+// parseRenderedData converts a map[string]any rendered response into LayoutServiceData
+func (c *SitecoreClient) parseRenderedData(rendered map[string]any) (*layoutservice.LayoutServiceData, error) {
+	// Marshal the map to JSON
+	jsonBytes, err := json.Marshal(rendered)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal rendered data: %w", err)
+	}
+
+	// Unmarshal into LayoutServiceData struct
+	var layoutData layoutservice.LayoutServiceData
+	if err := json.Unmarshal(jsonBytes, &layoutData); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal layout data: %w", err)
+	}
+
+	return &layoutData, nil
 }

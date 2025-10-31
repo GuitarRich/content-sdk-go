@@ -81,9 +81,10 @@ type LayoutServiceContext struct {
 	Site                           *struct {
 		Name *string `json:"name,omitempty"`
 	} `json:"site,omitempty"`
-	RenderingType *RenderingType            `json:"renderingType,omitempty"`
-	ClientScripts []string                  `json:"clientScripts,omitempty"`
-	ClientData    map[string]map[string]any `json:"clientData,omitempty"`
+	RenderingType *RenderingType `json:"renderingType,omitempty"`
+	ClientScripts []string       `json:"clientScripts,omitempty"`
+	// ClientData can be either a map or a string depending on the context (editing vs normal)
+	ClientData any `json:"clientData,omitempty"`
 	// Additional dynamic properties
 	AdditionalProperties map[string]any `json:"-"`
 }

@@ -1,8 +1,34 @@
 package models
 
 import (
+	"encoding/json"
+
 	"github.com/content-sdk-go/debug"
 )
+
+// extractMetadata extracts field metadata from the field map
+// Metadata is only present in editing mode
+func extractMetadata(fieldMap map[string]any) *FieldMetadata {
+	metadataRaw, ok := fieldMap["metadata"].(map[string]any)
+	if !ok {
+		return nil
+	}
+
+	// Use JSON marshal/unmarshal for easy conversion
+	jsonBytes, err := json.Marshal(metadataRaw)
+	if err != nil {
+		debug.Common("Failed to marshal metadata: %v", err)
+		return nil
+	}
+
+	var metadata FieldMetadata
+	if err := json.Unmarshal(jsonBytes, &metadata); err != nil {
+		debug.Common("Failed to unmarshal metadata: %v", err)
+		return nil
+	}
+
+	return &metadata
+}
 
 // ExtractTextFieldFromMap extracts a TextField from generic field data
 // Handles both jsonValue.value and direct value patterns
@@ -36,6 +62,9 @@ func ExtractTextFieldFromMap(fieldData any) *TextField {
 	if editable, ok := fieldMap["editable"].(string); ok {
 		field.Editable = editable
 	}
+
+	// Extract field metadata (only present in editing mode)
+	field.Metadata = extractMetadata(fieldMap)
 
 	return field
 }
@@ -72,6 +101,9 @@ func ExtractRichTextFieldFromMap(fieldData any) *RichTextField {
 	if editable, ok := fieldMap["editable"].(string); ok {
 		field.Editable = editable
 	}
+
+	// Extract field metadata (only present in editing mode)
+	field.Metadata = extractMetadata(fieldMap)
 
 	return field
 }
@@ -155,6 +187,9 @@ func ExtractImageFieldFromMap(fieldData any) *ImageField {
 		field.Editable = editable
 	}
 
+	// Extract field metadata (only present in editing mode)
+	field.Metadata = extractMetadata(fieldMap)
+
 	return field
 }
 
@@ -226,6 +261,10 @@ func ExtractLinkFieldFromMap(fieldData any) *LinkField {
 	if editable, ok := fieldValues["editable"].(string); ok {
 		field.Editable = editable
 	}
+
+	// Extract field metadata (only present in editing mode)
+	// Note: For link fields, metadata is at the top level fieldMap, not in fieldValues
+	field.Metadata = extractMetadata(fieldMap)
 
 	return field
 }

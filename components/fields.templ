@@ -14,8 +14,12 @@ templ RichText(fieldData interface{}, fieldName string, isEditingMode bool, cssC
 			// Use editable HTML with embedded chrome from Sitecore
 			@templ.Raw(field.Editable)
 		} else if isEditingMode {
-			// Manual chrome markers
-			@ChromeFieldOpen(fieldName, "rich-text")
+			// Manual chrome markers with metadata support
+			if field.Metadata != nil {
+				@ChromeFieldOpenWithMetadata(fieldName, field.Metadata)
+			} else {
+				@ChromeFieldOpen(fieldName, "rich-text")
+			}
 			<div class={ "rich-text content-sdk-rich-text", cssClass } data-field-name={ fieldName }>
 				@templ.Raw(field.GetValue().(string))
 			</div>
@@ -40,8 +44,12 @@ templ RichText(fieldData interface{}, fieldName string, isEditingMode bool, cssC
 templ Image(field *models.ImageField, fieldName string, isEditingMode bool, cssClass string, width string, height string) {
 	if field != nil && !field.IsEmpty() {
 		if isEditingMode {
-			// Manual chrome markers
-			@ChromeFieldOpen(fieldName, "image")
+			// Manual chrome markers with metadata support
+			if field.Metadata != nil {
+				@ChromeFieldOpenWithMetadata(fieldName, field.Metadata)
+			} else {
+				@ChromeFieldOpen(fieldName, "image")
+			}
 			// Determine which width and height to use
 			if (width != "" || field.GetWidth() != "") && (height != "" || field.GetHeight() != "") {
 				<img
@@ -97,6 +105,7 @@ templ Image(field *models.ImageField, fieldName string, isEditingMode bool, cssC
 			}
 		}
 	} else if isEditingMode {
+		// Empty field in editing mode - no metadata available
 		@ChromeFieldOpen(fieldName, "image")
 		<span class="empty-image-placeholder" data-field-name={ fieldName }>[Empty Image]</span>
 		@ChromeFieldClose()
@@ -113,8 +122,12 @@ templ Image(field *models.ImageField, fieldName string, isEditingMode bool, cssC
 templ Link(fieldData interface{}, fieldName string, isEditingMode bool, cssClass string, children ...templ.Component) {
 	if field := models.ExtractLinkFieldFromMap(fieldData); !field.IsEmpty() {
 		if isEditingMode {
-			// Manual chrome markers
-			@ChromeFieldOpen(fieldName, "link")
+			// Manual chrome markers with metadata support
+			if field.Metadata != nil {
+				@ChromeFieldOpenWithMetadata(fieldName, field.Metadata)
+			} else {
+				@ChromeFieldOpen(fieldName, "link")
+			}
 			<a
 				href={ templ.SafeURL(field.GetHref()) }
 				if field.GetTarget() != "" {
@@ -169,7 +182,11 @@ templ PlainText(fieldData interface{}, fieldName string, isEditingMode bool) {
 	if field := models.ExtractTextFieldFromMap(fieldData); !field.IsEmpty() {
 		if isEditingMode {
 			// Manual chrome markers with span wrapper for editing
-			@ChromeFieldOpen(fieldName, "text")
+			if field.Metadata != nil {
+				@ChromeFieldOpenWithMetadata(fieldName, field.Metadata)
+			} else {
+				@ChromeFieldOpen(fieldName, "text")
+			}
 			<span data-field-name={ fieldName }>{ field.Value }</span>
 			@ChromeFieldClose()
 		} else {
@@ -192,8 +209,12 @@ templ Text(fieldData interface{}, fieldName string, isEditingMode bool, tag stri
 			// Use editable HTML with embedded chrome from Sitecore
 			@templ.Raw(field.Editable)
 		} else if isEditingMode {
-			// Manual chrome markers
-			@ChromeFieldOpen(fieldName, "text")
+			// Manual chrome markers with metadata support
+			if field.Metadata != nil {
+				@ChromeFieldOpenWithMetadata(fieldName, field.Metadata)
+			} else {
+				@ChromeFieldOpen(fieldName, "text")
+			}
 			switch tag {
 				case "h1":
 					<h1 class={ cssClass } data-field-name={ fieldName }>{ field.Value }</h1>

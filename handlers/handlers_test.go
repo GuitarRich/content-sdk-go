@@ -70,15 +70,29 @@ func (m *MockContext) NoContent(code int) error {
 	return nil
 }
 
+// MockComponentRegistry is a mock implementation for testing
+type MockComponentRegistry struct {
+	components []string
+}
+
+func (m *MockComponentRegistry) List() []string {
+	return m.components
+}
+
 func TestEditingConfigHandler(t *testing.T) {
-	config := EditingConfigHandlerConfig{
-		SitecoreEdgeURL:       "https://edge.sitecorecloud.io",
-		SitecoreEdgeContextID: "test-context-id",
-		DefaultLanguage:       "en",
-		DefaultSite:           "mysite",
+	// Create mock registry with sample components
+	mockRegistry := &MockComponentRegistry{
+		components: []string{
+			"Hero",
+			"ProductListing",
+			"RichTextBlock",
+			"PromoBlock",
+			"Unknown", // Should be filtered out
+			"Container",
+		},
 	}
 
-	handler := NewEditingConfigHandler(config)
+	handler := NewEditingConfigHandler(mockRegistry)
 	ctx := NewMockContext("GET", "/api/editing/config", nil)
 
 	err := handler.Handle(ctx)
@@ -97,12 +111,45 @@ func TestEditingConfigHandler(t *testing.T) {
 		t.Errorf("failed to parse response: %v", err)
 	}
 
-	if response.SitecoreEdgeURL != config.SitecoreEdgeURL {
-		t.Errorf("expected edge URL %s, got %s", config.SitecoreEdgeURL, response.SitecoreEdgeURL)
+	// Verify components are present and "Unknown" is filtered out
+	foundHero := false
+	foundUnknown := false
+	for _, component := range response.Components {
+		if component == "Hero" {
+			foundHero = true
+		}
+		if component == "Unknown" {
+			foundUnknown = true
+		}
 	}
 
-	if response.DefaultLanguage != config.DefaultLanguage {
-		t.Errorf("expected language %s, got %s", config.DefaultLanguage, response.DefaultLanguage)
+	if !foundHero {
+		t.Errorf("expected Hero component in list")
+	}
+
+	if foundUnknown {
+		t.Errorf("Unknown component should be filtered out")
+	}
+
+	// Verify editMode
+	if response.EditMode != "metadata" {
+		t.Errorf("expected editMode 'metadata', got '%s'", response.EditMode)
+	}
+
+	// Verify packages are present
+	if len(response.Packages) == 0 {
+		t.Errorf("expected packages to be present")
+	}
+
+	// Verify specific package versions
+	if response.Packages["@sitecore-content-sdk/core"] != "1.1.0" {
+		t.Errorf("expected @sitecore-content-sdk/core version 1.1.0, got %s",
+			response.Packages["@sitecore-content-sdk/core"])
+	}
+
+	if response.Packages["@sitecore/components"] != "2.1.0" {
+		t.Errorf("expected @sitecore/components version 2.1.0, got %s",
+			response.Packages["@sitecore/components"])
 	}
 }
 

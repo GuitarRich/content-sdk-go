@@ -106,6 +106,9 @@ type EditingConfig struct {
 
 	// InternalHostURL is the internal host URL for server-side requests
 	InternalHostURL string `json:"internalHostUrl"`
+
+	// AllowedOrigins is the list of origins allowed to access editing APIs
+	AllowedOrigins []string `json:"allowedOrigins"`
 }
 
 // LoadConfig loads configuration from environment variables
@@ -138,6 +141,7 @@ func LoadConfig() *Config {
 			Enabled:         utils.GetEnvVarOrDefault("EDITING_ENABLED", "false") == "true",
 			Secret:          utils.GetEnvVar("EDITING_SECRET"),
 			InternalHostURL: utils.GetEnvVar("SITECORE_INTERNAL_EDITING_HOST_URL"),
+			AllowedOrigins:  utils.GetEnvVarAsArray("ALLOWED_ORIGINS", ","),
 		},
 		EdgeTimeout: parseDuration(utils.GetEnvVarOrDefault("EDGE_TIMEOUT", "10s")),
 		CDPTimeout:  parseDuration(utils.GetEnvVarOrDefault("CDP_TIMEOUT", "400ms")),

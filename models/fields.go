@@ -6,12 +6,32 @@ type Field interface {
 	GetValue() any
 	GetEditable() string
 	IsEmpty() bool
+	GetMetadata() *FieldMetadata
+}
+
+// Datasource represents the datasource information in field metadata
+type Datasource struct {
+	ID       string `json:"id"`
+	Language string `json:"language"`
+	Revision string `json:"revision"`
+	Version  int    `json:"version"`
+}
+
+// FieldMetadata represents editing metadata for a field
+// This is only populated when in editing mode
+type FieldMetadata struct {
+	Datasource Datasource `json:"datasource"`
+	Title      string     `json:"title"`
+	FieldID    string     `json:"fieldId"`
+	FieldType  string     `json:"fieldType"`
+	RawValue   string     `json:"rawValue"`
 }
 
 // TextField represents a simple text field value (Single-Line Text, Multi-Line Text)
 type TextField struct {
-	Value    string `json:"value"`
-	Editable string `json:"editable,omitempty"`
+	Value    string         `json:"value"`
+	Editable string         `json:"editable,omitempty"`
+	Metadata *FieldMetadata `json:"metadata,omitempty"`
 }
 
 func (f *TextField) GetValue() any {
@@ -22,14 +42,19 @@ func (f *TextField) GetEditable() string {
 	return f.Editable
 }
 
+func (f *TextField) GetMetadata() *FieldMetadata {
+	return f.Metadata
+}
+
 func (f *TextField) IsEmpty() bool {
 	return f.Value == ""
 }
 
 // RichTextField represents a rich text field with HTML content
 type RichTextField struct {
-	Value    string `json:"value"`
-	Editable string `json:"editable,omitempty"`
+	Value    string         `json:"value"`
+	Editable string         `json:"editable,omitempty"`
+	Metadata *FieldMetadata `json:"metadata,omitempty"`
 }
 
 func (f *RichTextField) GetValue() any {
@@ -38,6 +63,10 @@ func (f *RichTextField) GetValue() any {
 
 func (f *RichTextField) GetEditable() string {
 	return f.Editable
+}
+
+func (f *RichTextField) GetMetadata() *FieldMetadata {
+	return f.Metadata
 }
 
 func (f *RichTextField) IsEmpty() bool {
@@ -52,6 +81,7 @@ type ImageField struct {
 	Height   string           `json:"height,omitempty"`
 	Editable string           `json:"editable,omitempty"`
 	Value    *ImageFieldValue `json:"value,omitempty"`
+	Metadata *FieldMetadata   `json:"metadata,omitempty"`
 }
 
 // ImageFieldValue contains the nested image value structure
@@ -68,6 +98,10 @@ func (f *ImageField) GetValue() any {
 
 func (f *ImageField) GetEditable() string {
 	return f.Editable
+}
+
+func (f *ImageField) GetMetadata() *FieldMetadata {
+	return f.Metadata
 }
 
 func (f *ImageField) IsEmpty() bool {
@@ -127,6 +161,7 @@ type LinkField struct {
 	Class    string          `json:"class,omitempty"`
 	Editable string          `json:"editable,omitempty"`
 	Value    *LinkFieldValue `json:"value,omitempty"`
+	Metadata *FieldMetadata  `json:"metadata,omitempty"`
 }
 
 // LinkFieldValue contains the nested link value structure
@@ -144,6 +179,10 @@ func (f *LinkField) GetValue() any {
 
 func (f *LinkField) GetEditable() string {
 	return f.Editable
+}
+
+func (f *LinkField) GetMetadata() *FieldMetadata {
+	return f.Metadata
 }
 
 func (f *LinkField) IsEmpty() bool {

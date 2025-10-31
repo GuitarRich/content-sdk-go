@@ -2,6 +2,7 @@ package utils
 
 import (
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -31,4 +32,25 @@ func GetEnvVarOrDefault(key string, defaultValue string) string {
 		return defaultValue
 	}
 	return value
+}
+
+// GetEnvVarAsArray returns the env var value split by the separator.
+// Returns an empty slice if the variable is not set or empty.
+func GetEnvVarAsArray(key string, separator string) []string {
+	value := GetEnvVar(key)
+	if value == "" {
+		return []string{}
+	}
+
+	// Split by separator and trim whitespace from each element
+	parts := strings.Split(value, separator)
+	result := make([]string, 0, len(parts))
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+
+	return result
 }

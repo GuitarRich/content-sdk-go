@@ -2,48 +2,38 @@ package handlers
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/content-sdk-go/debug"
 	"github.com/content-sdk-go/middleware"
 )
 
+// ComponentRegistry interface for accessing registered components
+type ComponentRegistry interface {
+	List() []string
+}
+
 // EditingConfigHandler provides configuration for the Sitecore Pages editor
 type EditingConfigHandler struct {
-	config EditingConfigResponse
+	registry ComponentRegistry
 }
 
 // EditingConfigResponse contains the editing configuration
 type EditingConfigResponse struct {
-	// SitecoreEdgeURL is the Sitecore Edge URL
-	SitecoreEdgeURL string `json:"sitecoreEdgeUrl,omitempty"`
+	// Components is the list of registered component names
+	Components []string `json:"components"`
 
-	// SitecoreEdgeContextID is the Edge context ID
-	SitecoreEdgeContextID string `json:"sitecoreEdgeContextId,omitempty"`
+	// Packages contains the package versions
+	Packages map[string]string `json:"packages"`
 
-	// DefaultLanguage is the default language
-	DefaultLanguage string `json:"defaultLanguage,omitempty"`
-
-	// DefaultSite is the default site name
-	DefaultSite string `json:"defaultSite,omitempty"`
-}
-
-// EditingConfigHandlerConfig contains configuration for the editing config handler
-type EditingConfigHandlerConfig struct {
-	SitecoreEdgeURL       string
-	SitecoreEdgeContextID string
-	DefaultLanguage       string
-	DefaultSite           string
+	// EditMode is the editing mode
+	EditMode string `json:"editMode"`
 }
 
 // NewEditingConfigHandler creates a new editing config handler
-func NewEditingConfigHandler(config EditingConfigHandlerConfig) *EditingConfigHandler {
+func NewEditingConfigHandler(registry ComponentRegistry) *EditingConfigHandler {
 	return &EditingConfigHandler{
-		config: EditingConfigResponse{
-			SitecoreEdgeURL:       config.SitecoreEdgeURL,
-			SitecoreEdgeContextID: config.SitecoreEdgeContextID,
-			DefaultLanguage:       config.DefaultLanguage,
-			DefaultSite:           config.DefaultSite,
-		},
+		registry: registry,
 	}
 }
 
@@ -51,6 +41,37 @@ func NewEditingConfigHandler(config EditingConfigHandlerConfig) *EditingConfigHa
 func (h *EditingConfigHandler) Handle(ctx middleware.Context) error {
 	debug.Editing("handling editing config request")
 
+	// Get registered components, excluding "Unknown"
+	allComponents := h.registry.List()
+	components := make([]string, 0, len(allComponents))
+	for _, name := range allComponents {
+		if name != "Unknown" {
+			components = append(components, name)
+		}
+	}
+
+	// Sort components alphabetically
+	slices.Sort(components)
+
+	// Build response with hardcoded package versions
+	response := EditingConfigResponse{
+		Components: components,
+		Packages: map[string]string{
+			"@sitecore-cloudsdk/core":        "0.5.4",
+			"@sitecore-cloudsdk/events":      "0.5.4",
+			"@sitecore-cloudsdk/personalize": "0.5.4",
+			"@sitecore-cloudsdk/utils":       "0.5.4",
+			"@sitecore-content-sdk/cli":      "1.1.0",
+			"@sitecore-content-sdk/core":     "1.1.0",
+			"@sitecore-content-sdk/nextjs":   "1.1.0",
+			"@sitecore-content-sdk/react":    "1.1.0",
+			"@sitecore-feaas/clientside":     "0.6.2",
+			"@sitecore/byoc":                 "0.3.0",
+			"@sitecore/components":           "2.1.0",
+		},
+		EditMode: "metadata",
+	}
+
 	// Return configuration as JSON
-	return ctx.JSON(http.StatusOK, h.config)
+	return ctx.JSON(http.StatusOK, response)
 }

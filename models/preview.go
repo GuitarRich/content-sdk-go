@@ -1,5 +1,16 @@
 package models
 
+// LayoutKind represents the type of layout to fetch
+type LayoutKind string
+
+const (
+	// LayoutKindFinal is the final layout
+	LayoutKindFinal LayoutKind = "final"
+
+	// LayoutKindShared is the shared layout
+	LayoutKindShared LayoutKind = "shared"
+)
+
 // PreviewData contains data for preview/editing modes
 type PreviewData struct {
 	// ItemID is the Sitecore item ID being previewed
@@ -16,6 +27,15 @@ type PreviewData struct {
 
 	// Mode is the preview mode (preview or edit)
 	Mode PreviewMode `json:"mode"`
+
+	// LayoutKind is the layout variant to fetch (final or shared)
+	LayoutKind LayoutKind `json:"layoutKind,omitempty"`
+
+	// VariantIds contains personalization variant IDs
+	VariantIds []string `json:"variantIds,omitempty"`
+
+	// Route is the page route being previewed
+	Route string `json:"route,omitempty"`
 
 	// ServerURL is the Sitecore server URL for preview requests
 	ServerURL string `json:"serverUrl,omitempty"`

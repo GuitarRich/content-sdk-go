@@ -1,17 +1,19 @@
 package components
 
 import (
+	"encoding/json"
 	layoutservice "github.com/content-sdk-go/layoutService"
+	"github.com/content-sdk-go/models"
 )
 
 // ChromeMarkerOpen renders the opening Sitecore chrome marker
 // This marks the start of a component in the Experience Editor
 templ ChromeMarkerOpen(uid string) {
-	<code 
-		type="text/sitecore" 
-		chrometype="rendering" 
-		class="scpm" 
-		kind="open" 
+	<code
+		type="text/sitecore"
+		chrometype="rendering"
+		class="scpm"
+		kind="open"
 		id={ uid }
 		style="cursor:pointer;"
 	></code>
@@ -20,11 +22,11 @@ templ ChromeMarkerOpen(uid string) {
 // ChromeMarkerClose renders the closing Sitecore chrome marker
 // This marks the end of a component in the Experience Editor
 templ ChromeMarkerClose() {
-	<code 
-		type="text/sitecore" 
-		chrometype="rendering" 
-		class="scpm" 
-		kind="close" 
+	<code
+		type="text/sitecore"
+		chrometype="rendering"
+		class="scpm"
+		kind="close"
 		style="cursor:pointer;"
 	></code>
 }
@@ -32,22 +34,59 @@ templ ChromeMarkerClose() {
 // ChromeFieldOpen renders the opening Sitecore field chrome marker
 // This enables inline editing of individual fields in the Experience Editor
 templ ChromeFieldOpen(fieldName string, fieldType string) {
-	<code 
-		type="text/sitecore" 
-		chrometype="field" 
-		class="scpm" 
+	<code
+		type="text/sitecore"
+		chrometype="field"
+		class="scpm"
 		kind="open"
 		data-field-name={ fieldName }
 		data-field-type={ fieldType }
 	></code>
 }
 
+// ChromeFieldOpenWithMetadata renders the opening Sitecore field chrome marker with metadata
+// This enables inline editing with full metadata context for the Experience Editor
+// The metadata is marshalled to JSON and placed inside the code element
+templ ChromeFieldOpenWithMetadata(fieldName string, metadata *models.FieldMetadata) {
+	if metadata != nil {
+		if jsonBytes, err := json.Marshal(metadata); err == nil {
+			<code
+				type="text/sitecore"
+				chrometype="field"
+				class="scpm"
+				kind="open"
+				data-field-name={ fieldName }
+			>
+				@templ.Raw(string(jsonBytes))
+			</code>
+		} else {
+			// Fallback to basic chrome marker if marshaling fails
+			<code
+				type="text/sitecore"
+				chrometype="field"
+				class="scpm"
+				kind="open"
+				data-field-name={ fieldName }
+			></code>
+		}
+	} else {
+		// Fallback to basic chrome marker if no metadata
+		<code
+			type="text/sitecore"
+			chrometype="field"
+			class="scpm"
+			kind="open"
+			data-field-name={ fieldName }
+		></code>
+	}
+}
+
 // ChromeFieldClose renders the closing Sitecore field chrome marker
 templ ChromeFieldClose() {
-	<code 
-		type="text/sitecore" 
-		chrometype="field" 
-		class="scpm" 
+	<code
+		type="text/sitecore"
+		chrometype="field"
+		class="scpm"
 		kind="close"
 	></code>
 }
@@ -123,4 +162,3 @@ templ RenderPlaceholderWithChrome(
 		}
 	</div>
 }
-

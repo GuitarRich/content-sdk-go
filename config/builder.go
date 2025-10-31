@@ -82,10 +82,13 @@ func (b *ConfigBuilder) WithPersonalization(enabled bool, scope, cdpEndpoint str
 }
 
 // WithEditing configures editing support
-func (b *ConfigBuilder) WithEditing(enabled bool, secret, internalHostURL string) *ConfigBuilder {
+func (b *ConfigBuilder) WithEditing(enabled bool, secret, internalHostURL string, allowedOrigins ...string) *ConfigBuilder {
 	b.config.Editing.Enabled = enabled
 	b.config.Editing.Secret = secret
 	b.config.Editing.InternalHostURL = internalHostURL
+	if len(allowedOrigins) > 0 {
+		b.config.Editing.AllowedOrigins = allowedOrigins
+	}
 	return b
 }
 
