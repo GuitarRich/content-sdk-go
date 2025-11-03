@@ -1,6 +1,9 @@
 package components
 
-import "github.com/content-sdk-go/models"
+import (
+	"fmt"
+	"github.com/content-sdk-go/models"
+)
 
 // RichText renders a rich text field with chrome markers in editing mode
 // Parameters:
@@ -41,15 +44,16 @@ templ RichText(fieldData interface{}, fieldName string, isEditingMode bool, cssC
 //   - cssClass: Optional CSS class to apply to the image
 //   - width: Optional width to override field's width (pass "" to use field's width)
 //   - height: Optional height to override field's height (pass "" to use field's height)
+//
+// Note: In editing mode, field.Metadata must be present or an error will be rendered
 templ Image(field *models.ImageField, fieldName string, isEditingMode bool, cssClass string, width string, height string) {
-	if field != nil && !field.IsEmpty() {
+	if err := validateImageFieldForEditing(field, fieldName, isEditingMode); err != nil {
+		@FieldValidationError(fieldName, err.Error())
+		@templ.Raw(fmt.Sprintf("<!-- Field Validation Error: %v -->", field))
+	} else if field != nil && !field.IsEmpty() {
 		if isEditingMode {
-			// Manual chrome markers with metadata support
-			if field.Metadata != nil {
-				@ChromeFieldOpenWithMetadata(fieldName, field.Metadata)
-			} else {
-				@ChromeFieldOpen(fieldName, "image")
-			}
+			// Manual chrome markers with metadata (required in editing mode)
+			@ChromeFieldOpenWithMetadata(fieldName, field.Metadata)
 			// Determine which width and height to use
 			if (width != "" || field.GetWidth() != "") && (height != "" || field.GetHeight() != "") {
 				<img
@@ -104,12 +108,21 @@ templ Image(field *models.ImageField, fieldName string, isEditingMode bool, cssC
 				/>
 			}
 		}
-	} else if isEditingMode {
-		// Empty field in editing mode - no metadata available
-		@ChromeFieldOpen(fieldName, "image")
-		<span class="empty-image-placeholder" data-field-name={ fieldName }>[Empty Image]</span>
-		@ChromeFieldClose()
 	}
+}
+
+// validateImageFieldForEditing validates that an image field has required metadata in editing mode
+func validateImageFieldForEditing(field *models.ImageField, fieldName string, isEditingMode bool) error {
+	if !isEditingMode {
+		return nil
+	}
+	if field == nil {
+		return nil // Empty fields are allowed
+	}
+	if field.Metadata == nil {
+		return fmt.Errorf("field '%s' is missing required metadata in editing mode", fieldName)
+	}
+	return nil
 }
 
 // Link renders a link field with chrome markers in editing mode
@@ -175,18 +188,18 @@ templ Link(fieldData interface{}, fieldName string, isEditingMode bool, cssClass
 // PlainText renders a plain text field value without any wrapper tag
 // This is useful for inserting text directly into existing HTML or when you don't need a wrapper
 // Parameters:
-//   - fieldData: The raw field data from Sitecore
+//   - field: The strongly-typed TextField from Sitecore (use models.ExtractTextFieldFromMap to extract)
 //   - fieldName: The field name (used for chrome markers)
 //   - isEditingMode: Whether we're in editing mode
-templ PlainText(fieldData interface{}, fieldName string, isEditingMode bool) {
-	if field := models.ExtractTextFieldFromMap(fieldData); !field.IsEmpty() {
+//
+// Note: In editing mode, field.Metadata must be present or an error will be rendered
+templ PlainText(field *models.TextField, fieldName string, isEditingMode bool) {
+	if err := validateFieldForEditing(field, fieldName, isEditingMode); err != nil {
+		@FieldValidationError(fieldName, err.Error())
+	} else if field != nil {
 		if isEditingMode {
 			// Manual chrome markers with span wrapper for editing
-			if field.Metadata != nil {
-				@ChromeFieldOpenWithMetadata(fieldName, field.Metadata)
-			} else {
-				@ChromeFieldOpen(fieldName, "text")
-			}
+			@ChromeFieldOpenWithMetadata(fieldName, field.Metadata)
 			<span data-field-name={ fieldName }>{ field.Value }</span>
 			@ChromeFieldClose()
 		} else {
@@ -194,6 +207,27 @@ templ PlainText(fieldData interface{}, fieldName string, isEditingMode bool) {
 			{ field.Value }
 		}
 	}
+}
+
+// validateFieldForEditing validates that a text field has required metadata in editing mode
+func validateFieldForEditing(field *models.TextField, fieldName string, isEditingMode bool) error {
+	if !isEditingMode {
+		return nil
+	}
+	if field == nil {
+		return nil // Empty fields are allowed
+	}
+	if field.Metadata == nil {
+		return fmt.Errorf("field '%s' is missing required metadata in editing mode", fieldName)
+	}
+	return nil
+}
+
+// FieldValidationError renders an error message for field validation failures
+templ FieldValidationError(fieldName string, errorMessage string) {
+	<div class="field-validation-error border-2 border-red-500 bg-red-50 p-2 rounded text-red-800 text-sm">
+		<strong>Field Error ({ fieldName }):</strong> { errorMessage }
+	</div>
 }
 
 // Text renders a simple text field with chrome markers in editing mode

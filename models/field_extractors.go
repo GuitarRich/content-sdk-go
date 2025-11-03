@@ -53,18 +53,19 @@ func ExtractTextFieldFromMap(fieldData any) *TextField {
 		if value, ok := jsonValue["value"].(string); ok {
 			field.Value = value
 		}
+		// Extract metadata from jsonValue (standard pattern in editing mode)
+		field.Metadata = extractMetadata(jsonValue)
 	} else if value, ok := fieldMap["value"].(string); ok {
 		// Fallback: direct value
 		field.Value = value
+		// Extract metadata from root level (fallback)
+		field.Metadata = extractMetadata(fieldMap)
 	}
 
 	// Extract editable metadata (contains pre-wrapped HTML with chrome)
 	if editable, ok := fieldMap["editable"].(string); ok {
 		field.Editable = editable
 	}
-
-	// Extract field metadata (only present in editing mode)
-	field.Metadata = extractMetadata(fieldMap)
 
 	return field
 }
@@ -92,9 +93,13 @@ func ExtractRichTextFieldFromMap(fieldData any) *RichTextField {
 		if value, ok := jsonValue["value"].(string); ok {
 			field.Value = value
 		}
+		// Extract metadata from jsonValue (standard pattern in editing mode)
+		field.Metadata = extractMetadata(jsonValue)
 	} else if value, ok := fieldMap["value"].(string); ok {
 		// Fallback: direct value
 		field.Value = value
+		// Extract metadata from root level (fallback)
+		field.Metadata = extractMetadata(fieldMap)
 	}
 
 	// Extract editable metadata (contains pre-wrapped HTML with chrome)
@@ -102,18 +107,14 @@ func ExtractRichTextFieldFromMap(fieldData any) *RichTextField {
 		field.Editable = editable
 	}
 
-	// Extract field metadata (only present in editing mode)
-	field.Metadata = extractMetadata(fieldMap)
-
 	return field
 }
 
 // ExtractImageFieldFromMap extracts an ImageField from generic field data
 // Handles both jsonValue.value and direct property patterns
 func ExtractImageFieldFromMap(fieldData any) *ImageField {
-	debug.Common("ExtractImageFieldFromMap fieldData: %+v", fieldData)
 	if fieldData == nil {
-		debug.Common("ExtractImageFieldFromMap fieldData is nil")
+		debug.Common("ExtractImageFieldFromMap fieldData is nil type: %T", fieldData)
 		return &ImageField{}
 	}
 
@@ -188,7 +189,12 @@ func ExtractImageFieldFromMap(fieldData any) *ImageField {
 	}
 
 	// Extract field metadata (only present in editing mode)
-	field.Metadata = extractMetadata(fieldMap)
+	// When using jsonValue pattern, metadata is inside jsonValue
+	if useJsonValue {
+		field.Metadata = extractMetadata(fieldValues)
+	} else {
+		field.Metadata = extractMetadata(fieldMap)
+	}
 
 	return field
 }
@@ -205,15 +211,28 @@ func ExtractLinkFieldFromMap(fieldData any) *LinkField {
 		return &LinkField{}
 	}
 
-	fieldValues, ok := fieldMap["value"].(map[string]any)
-	if !ok {
-		return &LinkField{}
-	}
-
 	field := &LinkField{}
 
-	// Try jsonValue.value pattern (standard Sitecore format)
-	if jsonValue, ok := fieldValues["jsonValue"].(map[string]any); ok {
+	// Try jsonValue.value pattern first (standard Sitecore format)
+	fieldValues, ok := fieldMap["value"].(map[string]any)
+	if !ok {
+		fieldValues = nil
+	}
+
+	useJsonValue := false
+	if fieldValues == nil {
+		fieldValues, ok = fieldMap["jsonValue"].(map[string]any)
+		if !ok {
+			return &LinkField{}
+		}
+		useJsonValue = ok
+	}
+
+	// Extract link value structure
+	if jsonValue, ok := fieldValues["jsonValue"].(map[string]any); ok || useJsonValue {
+		if useJsonValue {
+			jsonValue = fieldValues
+		}
 		if value, ok := jsonValue["value"].(map[string]any); ok {
 			// Extract nested value structure
 			field.Value = &LinkFieldValue{}
@@ -258,13 +277,17 @@ func ExtractLinkFieldFromMap(fieldData any) *LinkField {
 	}
 
 	// Extract editable metadata (contains pre-wrapped HTML with chrome)
-	if editable, ok := fieldValues["editable"].(string); ok {
+	if editable, ok := fieldMap["editable"].(string); ok {
 		field.Editable = editable
 	}
 
 	// Extract field metadata (only present in editing mode)
-	// Note: For link fields, metadata is at the top level fieldMap, not in fieldValues
-	field.Metadata = extractMetadata(fieldMap)
+	// When using jsonValue pattern, metadata is inside jsonValue
+	if useJsonValue {
+		field.Metadata = extractMetadata(fieldValues)
+	} else {
+		field.Metadata = extractMetadata(fieldMap)
+	}
 
 	return field
 }

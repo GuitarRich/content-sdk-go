@@ -74,6 +74,9 @@ const (
 
 	// PageModeEdit is editing mode (Sitecore Pages editor)
 	PageModeEdit PageMode = "edit"
+
+	// PageModeDesignLibrary is design library mode (component library)
+	PageModeDesignLibrary PageMode = "designlibrary"
 )
 
 // EditingContext contains information about the page editing state

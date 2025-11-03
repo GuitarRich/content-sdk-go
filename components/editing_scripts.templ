@@ -1,0 +1,126 @@
+package components
+
+import (
+	"encoding/json"
+	"fmt"
+	"time"
+
+	"github.com/content-sdk-go/config"
+	layoutservice "github.com/content-sdk-go/layoutService"
+	"github.com/content-sdk-go/models"
+)
+
+// EditingScripts renders client scripts and data for editing/preview mode for Pages.
+// Renders script required for the Design Library (when mode is PageModeDesignLibrary).
+// Returns an empty fragment if not in editing/preview mode.
+templ EditingScripts(page *models.Page, cfg *config.Config) {
+	if page == nil || page.LayoutData == nil {
+		// No page data, render nothing
+	} else {
+		// Cast layout data to proper type
+		if layoutData, ok := page.LayoutData.(*layoutservice.LayoutServiceData); ok {
+			if shouldRenderEditingScripts(page, layoutData) {
+				if isDesignLibraryMode(page, layoutData) {
+					@renderDesignLibraryScript(cfg)
+				} else {
+					@renderEditingScripts(layoutData)
+				}
+			}
+		}
+	}
+}
+
+// shouldRenderEditingScripts determines if editing scripts should be rendered
+func shouldRenderEditingScripts(page *models.Page, layoutData *layoutservice.LayoutServiceData) bool {
+	// Don't render if in normal or preview mode
+	if page.EditingContext != nil {
+		mode := page.EditingContext.Mode
+		if mode == models.PageModeNormal || mode == models.PageModePreview {
+			return false
+		}
+	}
+
+	// Check if page editing flag is set in context
+	if layoutData.Sitecore.Context.PageEditing != nil && !*layoutData.Sitecore.Context.PageEditing {
+		// Also check page state
+		if layoutData.Sitecore.Context.PageState != nil {
+			state := string(*layoutData.Sitecore.Context.PageState)
+			return state == "edit" || state == "preview"
+		}
+		return false
+	}
+
+	return true
+}
+
+// isDesignLibraryMode determines if we're in Design Library mode
+func isDesignLibraryMode(page *models.Page, layoutData *layoutservice.LayoutServiceData) bool {
+	// Check page mode first
+	if page.EditingContext != nil && page.EditingContext.Mode == models.PageModeDesignLibrary {
+		return true
+	}
+
+	// Check rendering type
+	if layoutData.Sitecore.Context.RenderingType != nil {
+		return *layoutData.Sitecore.Context.RenderingType == layoutservice.RenderingTypeComponent
+	}
+
+	return false
+}
+
+// renderDesignLibraryScript renders the Design Library script with cache buster
+templ renderDesignLibraryScript(cfg *config.Config) {
+	// Generate cache buster timestamp (format: hh-dd-mm-yyyy, UTC)
+	if scriptURL := getDesignLibraryScriptURLWithCacheBuster(cfg); scriptURL != "" {
+		<script src={ scriptURL } suppressHydration></script>
+	}
+}
+
+// getDesignLibraryScriptURLWithCacheBuster returns the Design Library script URL with cache buster
+func getDesignLibraryScriptURLWithCacheBuster(cfg *config.Config) string {
+	if cfg == nil {
+		return ""
+	}
+
+	now := time.Now().UTC()
+	hour := fmt.Sprintf("%02d", now.Hour())
+	day := fmt.Sprintf("%02d", now.Day())
+	month := fmt.Sprintf("%02d", int(now.Month()))
+	year := fmt.Sprintf("%d", now.Year())
+	cacheTimestamp := fmt.Sprintf("%s-%s-%s-%s", hour, day, month, year)
+
+	baseURL := cfg.GetDesignLibraryScriptURL()
+	return fmt.Sprintf("%s?cb=%s", baseURL, cacheTimestamp)
+}
+
+// renderEditingScripts renders client scripts and client data for editing mode
+templ renderEditingScripts(layoutData *layoutservice.LayoutServiceData) {
+	// Render client scripts
+	if len(layoutData.Sitecore.Context.ClientScripts) > 0 {
+		for _, src := range layoutData.Sitecore.Context.ClientScripts {
+			<script src={ src }></script>
+		}
+	}
+	// Render client data as JSON script tags
+	if layoutData.Sitecore.Context.ClientData != nil {
+		if clientDataMap, ok := layoutData.Sitecore.Context.ClientData.(map[string]any); ok {
+			for id, data := range clientDataMap {
+				@renderClientDataScriptTag(id, data)
+			}
+		}
+	}
+}
+
+// renderClientDataScriptTag renders a single client data script tag using Raw HTML
+templ renderClientDataScriptTag(id string, data any) {
+	@templ.Raw(buildClientDataScriptHTML(id, data))
+}
+
+// buildClientDataScriptHTML builds the complete script tag HTML with JSON data
+func buildClientDataScriptHTML(id string, data any) string {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf(`<script id="%s" type="application/json">%s</script>`, id, string(jsonData))
+}

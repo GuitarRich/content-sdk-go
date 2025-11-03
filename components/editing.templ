@@ -2,6 +2,7 @@ package components
 
 import (
 	"encoding/json"
+	"fmt"
 	layoutservice "github.com/content-sdk-go/layoutService"
 	"github.com/content-sdk-go/models"
 )
@@ -15,7 +16,6 @@ templ ChromeMarkerOpen(uid string) {
 		class="scpm"
 		kind="open"
 		id={ uid }
-		style="cursor:pointer;"
 	></code>
 }
 
@@ -27,7 +27,6 @@ templ ChromeMarkerClose() {
 		chrometype="rendering"
 		class="scpm"
 		kind="close"
-		style="cursor:pointer;"
 	></code>
 }
 
@@ -55,22 +54,22 @@ templ ChromeFieldOpenWithMetadata(fieldName string, metadata *models.FieldMetada
 				chrometype="field"
 				class="scpm"
 				kind="open"
-				data-field-name={ fieldName }
 			>
 				@templ.Raw(string(jsonBytes))
 			</code>
 		} else {
 			// Fallback to basic chrome marker if marshaling fails
+			@templ.Raw(fmt.Sprintf("<!-- FAILED TO MARSHAL METADATA FOR FIELD: %s -->", fieldName))
 			<code
 				type="text/sitecore"
 				chrometype="field"
 				class="scpm"
 				kind="open"
-				data-field-name={ fieldName }
 			></code>
 		}
 	} else {
 		// Fallback to basic chrome marker if no metadata
+		@templ.Raw(fmt.Sprintf("<!-- FAILED TO MARSHAL METADATA FOR FIELD: %s -->", fieldName))
 		<code
 			type="text/sitecore"
 			chrometype="field"
@@ -126,10 +125,13 @@ templ ChromePlaceholderOpen(placeholderKey string, placeholderName string) {
 		class="scpm"
 		kind="open"
 		id={ placeholderKey }
-		key={ placeholderKey }
-		data-placeholder-name={ placeholderName }
-		style="cursor:pointer;"
 	></code>
+	/*
+	<code type="text/sitecore" 
+	chrometype="placeholder" c
+	lass="scpm" k
+	ind="open" id="headless-header_00000000-0000-0000-0000-000000000000"></code>
+	*/
 }
 
 // ChromePlaceholderClose renders closing marker for placeholder

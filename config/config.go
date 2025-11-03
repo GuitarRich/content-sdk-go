@@ -200,6 +200,16 @@ func (c *Config) GetAPIKey() string {
 	return c.API.Local.APIKey
 }
 
+// GetDesignLibraryScriptURL returns the URL for the Design Library script
+// This script is loaded in Design Library mode for component library rendering
+func (c *Config) GetDesignLibraryScriptURL() string {
+	edgeURL := c.API.Edge.EdgeURL
+	if edgeURL == "" {
+		edgeURL = "https://edge-platform.sitecorecloud.io"
+	}
+	return edgeURL + "/api/editing/designlibrary.js"
+}
+
 // parseDuration parses a duration string
 func parseDuration(s string) time.Duration {
 	d, err := time.ParseDuration(s)

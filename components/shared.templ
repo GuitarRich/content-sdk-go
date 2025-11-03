@@ -27,14 +27,28 @@ templ UnknownComponent(componentName string, data interface{}) {
 
 // RenderPlaceholder renders a placeholder with its components
 // This is a utility for rendering Sitecore placeholders with their nested components
+// In editing mode, it wraps the placeholder with chrome markers for Sitecore Pages editor
 templ RenderPlaceholder(name string, components []templ.Component) {
-	@templ.Raw(fmt.Sprintf("<!-- Placeholder: %s -->", name))
-	@templ.Raw(fmt.Sprintf("<!-- Components: %d -->", len(components)))
-	@templ.Raw("<!-- Start Components -->")
+	@RenderPlaceholderWithEditingSupport(name, components, false)
+}
+
+// RenderPlaceholderWithEditingSupport renders a placeholder with optional editing chrome markers
+// When isEditingMode is true, wraps the placeholder with Sitecore chrome markers
+templ RenderPlaceholderWithEditingSupport(name string, components []templ.Component, isEditingMode bool) {
+	<div class={ "placeholder-" + name } data-placeholder={ name }>
+		if isEditingMode {
+			@ChromePlaceholderOpen(name, name)
+		}
+		@templ.Raw(fmt.Sprintf("<!-- Placeholder: %s -->", name))
+		@templ.Raw(fmt.Sprintf("<!-- Components: %d -->", len(components)))
 		for _, component := range components {
 			@component
 		}
-	@templ.Raw("<!-- End Components -->")
+		@templ.Raw(fmt.Sprintf("<!-- End Placeholder: %s -->", name))
+		if isEditingMode {
+			@ChromePlaceholderClose()
+		}
+	</div>
 }
 
 // RenderComponentWithMetadata renders a component with HTML comments for debugging
@@ -76,6 +90,7 @@ templ RenderEmptyPlaceholder(name string, editingMode bool) {
 // 2. Get the DynamicPlaceholderId from params
 // 3. Construct the full placeholder key as "placeholder-name-{dynamicId}"
 // 4. Render the placeholder components if found
+// 5. Include editing chrome markers if in editing mode
 //
 // Example:
 //   <div class="footer-links">
@@ -84,8 +99,9 @@ templ RenderEmptyPlaceholder(name string, editingMode bool) {
 templ RenderDynamicPlaceholder(placeholderName string, params map[string]interface{}) {
 	if placeholders, ok := params["__placeholders"].(map[string][]templ.Component); ok {
 		if dynamicId := models.GetStringParam(params, "DynamicPlaceholderId"); dynamicId != "" {
-			@RenderPlaceholder(placeholderName+"-"+dynamicId, placeholders[placeholderName+"-"+dynamicId])
+			if isEditingMode, _ := params["__isEditingMode"].(bool); true {
+				@RenderPlaceholderWithEditingSupport(placeholderName+"-"+dynamicId, placeholders[placeholderName+"-"+dynamicId], isEditingMode)
+			}
 		}
 	}
 }
-
