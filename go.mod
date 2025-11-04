@@ -1,4 +1,4 @@
-module github.com/content-sdk-go
+module github.com/guitarrich/content-sdk-go
 
 go 1.25.0
 
