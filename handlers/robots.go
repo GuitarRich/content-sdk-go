@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/content-sdk-go/debug"
-	"github.com/content-sdk-go/middleware"
-	"github.com/content-sdk-go/seo"
+	"github.com/guitarrich/content-sdk-go/debug"
+	"github.com/guitarrich/content-sdk-go/middleware"
+	"github.com/guitarrich/content-sdk-go/seo"
 )
 
 // RobotsHandler handles robots.txt requests

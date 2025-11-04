@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/content-sdk-go/models"
-	"github.com/content-sdk-go/utils"
+	"github.com/guitarrich/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/utils"
 )
 
 // Config contains all configuration for the Sitecore Content SDK

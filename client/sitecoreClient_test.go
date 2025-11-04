@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	"github.com/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/models"
 )
 
 func TestParsePath_String(t *testing.T) {

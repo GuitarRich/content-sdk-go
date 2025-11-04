@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/content-sdk-go/debug"
+	"github.com/guitarrich/content-sdk-go/debug"
 	"github.com/labstack/echo/v4"
 )
 

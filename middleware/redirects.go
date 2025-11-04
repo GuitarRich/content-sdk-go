@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/content-sdk-go/debug"
-	"github.com/content-sdk-go/models"
-	"github.com/content-sdk-go/site"
+	"github.com/guitarrich/content-sdk-go/debug"
+	"github.com/guitarrich/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/site"
 )
 
 // RedirectsConfig contains configuration for redirects middleware

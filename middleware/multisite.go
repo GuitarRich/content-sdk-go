@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/content-sdk-go/client"
-	"github.com/content-sdk-go/debug"
-	"github.com/content-sdk-go/models"
-	"github.com/content-sdk-go/site"
+	"github.com/guitarrich/content-sdk-go/client"
+	"github.com/guitarrich/content-sdk-go/debug"
+	"github.com/guitarrich/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/site"
 )
 
 // MultisiteConfig contains configuration for multisite middleware

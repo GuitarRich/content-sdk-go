@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 
-	"github.com/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/models"
 	"github.com/labstack/echo/v4"
 )
 

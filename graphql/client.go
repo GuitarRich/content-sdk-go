@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/content-sdk-go/debug"
-	"github.com/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/debug"
+	"github.com/guitarrich/content-sdk-go/models"
 )
 
 // Client is the interface for GraphQL operations

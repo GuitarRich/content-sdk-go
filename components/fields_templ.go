@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/models"
 )
 
 // RichText renders a rich text field with chrome markers in editing mode

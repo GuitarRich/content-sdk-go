@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/content-sdk-go/debug"
-	"github.com/content-sdk-go/graphql"
+	"github.com/guitarrich/content-sdk-go/debug"
+	"github.com/guitarrich/content-sdk-go/graphql"
 )
 
 // GraphQLLayoutQueryName is the name of the GraphQL query for layout data

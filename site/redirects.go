@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/content-sdk-go/debug"
-	"github.com/content-sdk-go/graphql"
-	"github.com/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/debug"
+	"github.com/guitarrich/content-sdk-go/graphql"
+	"github.com/guitarrich/content-sdk-go/models"
 )
 
 // RedirectsService fetches and matches URL redirects

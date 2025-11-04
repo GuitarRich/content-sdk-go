@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/content-sdk-go/debug"
-	"github.com/content-sdk-go/graphql"
-	layoutservice "github.com/content-sdk-go/layoutService"
-	"github.com/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/debug"
+	"github.com/guitarrich/content-sdk-go/graphql"
+	layoutservice "github.com/guitarrich/content-sdk-go/layoutService"
+	"github.com/guitarrich/content-sdk-go/models"
 )
 
 const (

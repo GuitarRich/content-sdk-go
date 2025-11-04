@@ -3,7 +3,7 @@ package models
 import (
 	"encoding/json"
 
-	"github.com/content-sdk-go/debug"
+	"github.com/guitarrich/content-sdk-go/debug"
 )
 
 // extractMetadata extracts field metadata from the field map

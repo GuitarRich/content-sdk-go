@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/content-sdk-go/client"
-	"github.com/content-sdk-go/debug"
-	"github.com/content-sdk-go/middleware"
-	"github.com/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/client"
+	"github.com/guitarrich/content-sdk-go/debug"
+	"github.com/guitarrich/content-sdk-go/middleware"
+	"github.com/guitarrich/content-sdk-go/models"
 )
 
 // PageRenderer is an interface for rendering pages

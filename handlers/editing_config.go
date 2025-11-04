@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/content-sdk-go/debug"
-	"github.com/content-sdk-go/middleware"
+	"github.com/guitarrich/content-sdk-go/debug"
+	"github.com/guitarrich/content-sdk-go/middleware"
 )
 
 // ComponentRegistry interface for accessing registered components

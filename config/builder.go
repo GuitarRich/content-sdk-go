@@ -3,7 +3,7 @@ package config
 import (
 	"time"
 
-	"github.com/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/models"
 )
 
 // ConfigBuilder provides a fluent API for building Config

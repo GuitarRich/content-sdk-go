@@ -3,7 +3,7 @@ package config
 import (
 	"time"
 
-	"github.com/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/models"
 )
 
 // ExampleEdgeConfig returns an example configuration using Edge API

@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/content-sdk-go/middleware"
+	"github.com/guitarrich/content-sdk-go/middleware"
 )
 
 // MockContext for testing handlers

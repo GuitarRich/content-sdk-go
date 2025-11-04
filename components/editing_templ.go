@@ -11,8 +11,8 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"encoding/json"
 	"fmt"
-	layoutservice "github.com/content-sdk-go/layoutService"
-	"github.com/content-sdk-go/models"
+	layoutservice "github.com/guitarrich/content-sdk-go/layoutService"
+	"github.com/guitarrich/content-sdk-go/models"
 )
 
 // ChromeMarkerOpen renders the opening Sitecore chrome marker

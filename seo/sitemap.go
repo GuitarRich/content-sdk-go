@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/content-sdk-go/debug"
-	"github.com/content-sdk-go/graphql"
-	"github.com/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/debug"
+	"github.com/guitarrich/content-sdk-go/graphql"
+	"github.com/guitarrich/content-sdk-go/models"
 )
 
 // SitemapXmlService generates XML sitemaps

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/content-sdk-go/debug"
+	"github.com/guitarrich/content-sdk-go/debug"
 )
 
 // LocaleConfig contains configuration for locale middleware

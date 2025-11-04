@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/content-sdk-go/models"
+	"github.com/guitarrich/content-sdk-go/models"
 )
 
 // SiteResolver resolves sites by hostname or name

@@ -10,8 +10,8 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	layoutservice "github.com/content-sdk-go/layoutService"
-	"github.com/content-sdk-go/models"
+	layoutservice "github.com/guitarrich/content-sdk-go/layoutService"
+	"github.com/guitarrich/content-sdk-go/models"
 )
 
 // UnknownComponent renders a fallback for unknown/unimplemented components
